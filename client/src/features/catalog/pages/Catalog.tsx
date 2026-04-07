@@ -133,7 +133,7 @@ export default function Catalog() {
 
       {/* ── HEADER ──────────────────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-30"
+        className="top-0 z-30"
         style={{
           backgroundColor: "rgba(250,245,237,0.95)",
           backdropFilter: "blur(12px)",
@@ -150,20 +150,13 @@ export default function Catalog() {
           </button>
 
           <div className="flex flex-col items-center">
-            <span
-              className="text-2xl font-black tracking-tight leading-none"
-              style={{
-                color: C.red1,
-                fontFamily: "'Playfair Display', Georgia, serif",
-                letterSpacing: "-0.03em",
-              }}
-            >
-              CORAL
-            </span>
-            <span className="text-[8px] font-light tracking-[0.45em] uppercase mt-0.5"
-              style={{ color: C.bege3 }}>
-              Acessórios
-            </span>
+            <div className="h-12 w-12 md:h-20 md:w-20 shrink-0">
+                <img
+                  src="/logo2.png"
+                  alt="Coral Acessórios Logo"
+                  className="h-full w-full object-contain"
+                />
+              </div>
           </div>
 
           <div className="w-[72px]" />

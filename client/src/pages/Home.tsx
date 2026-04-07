@@ -122,21 +122,14 @@ export default function Home() {
           <div className="relative z-10 flex flex-col items-center w-full">
 
             {/* Wordmark */}
-            <div className="flex flex-col items-center mb-8">
-              <span
-                className="text-5xl sm:text-7xl font-black tracking-tight leading-none"
-                style={{
-                  color: C.red1,
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  letterSpacing: "-0.04em",
-                }}
-              >
-                CORAL
-              </span>
-              <span className="text-[10px] font-light tracking-[0.6em] uppercase mt-1.5"
-                style={{ color: C.noir }}>
-                Acessórios
-              </span>
+            <div className="flex flex-col items-center mb-1">
+              <div className="h-36 w-36 md:h-50 md:w-50 shrink-0">
+                <img
+                  src="/logo2.png"
+                  alt="Coral Acessórios Logo"
+                  className="h-full w-full object-contain"
+                />
+              </div>
             </div>
 
             <h1

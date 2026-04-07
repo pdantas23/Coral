@@ -35,23 +35,13 @@ export default function DashboardLayout({
 
           {/* Brand (center - fixed position) */}
           <div className="flex flex-col leading-none items-center">
-            <span
-              className="text-xl font-black tracking-tight"
-              style={{
-                color: C.red1,
-                fontFamily: "'Playfair Display', Georgia, serif",
-                letterSpacing: "-0.02em",
-                lineHeight: 1,
-              }}
-            >
-              CORAL
-            </span>
-            <span
-              className="text-[9px] font-light tracking-[0.35em] uppercase mt-0.5"
-              style={{ color: C.bege3 }}
-            >
-              Acessórios
-            </span>
+            <div className="h-8 w-8 md:h-12 md:w-12 shrink-0">
+                <img
+                  src="/logo.png"
+                  alt="Coral Acessórios Logo"
+                  className="h-full w-full object-contain"
+                />
+              </div>
           </div>
 
           {/* Nav tabs (center, desktop) - Hidden */}

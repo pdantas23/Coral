@@ -67,22 +67,16 @@ export default function Login() {
       <div className="w-full max-w-sm">
 
         {/* Brand */}
-        <div className="flex flex-col items-center mb-10">
-          <span
-            className="text-5xl font-black tracking-tight leading-none mb-1"
-            style={{
-              color: C.red1,
-              fontFamily: "'Playfair Display', Georgia, serif",
-              letterSpacing: "-0.04em",
-            }}
-          >
-            CORAL
-          </span>
-          <span className="text-[9px] font-light tracking-[0.55em] uppercase" style={{ color: C.bege3 }}>
-            Acessórios
-          </span>
-          <div className="mt-5 w-8 h-[2px] rounded-full" style={{ backgroundColor: C.red1, opacity: 0.4 }} />
-          <p className="mt-4 text-[10px] font-light tracking-[0.3em] uppercase" style={{ color: C.bege3 }}>
+        <div className="flex flex-col items-center mb-1">
+          <div className="h-36 w-36 md:h-50 md:w-50 shrink-0">
+                <img
+                  src="/logo2.png"
+                  alt="Coral Acessórios Logo"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+          <div className="w-8 h-[2px] rounded-full" style={{ backgroundColor: C.red1, opacity: 0.4 }} />
+          <p className="mt-2 text-[10px] font-light tracking-[0.3em] uppercase" style={{ color: C.bege3 }}>
             Área restrita
           </p>
         </div>

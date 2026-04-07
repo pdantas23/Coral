@@ -525,7 +525,7 @@ export default function Comercial() {
           onClick={closeModal}
         >
           <div
-            className="relative w-[80%] h-[80%] bg-white rounded-xl shadow-2xl"
+            className="relative w-[90vw] h-[60vh] md:w-[60vw] md:h-[70vh] bg-white rounded-xl shadow-2xl"            
             style={{ boxShadow: "0 30px 80px rgba(51,51,51,0.20)" }}
             onClick={(e) => e.stopPropagation()}
           >
