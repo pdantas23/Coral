@@ -398,9 +398,16 @@ export default function Catalog() {
       </main>
 
       {/* ── FOOTER ───────────────────────────────────────────────────── */}
-      <footer className="py-8 text-center border-t" style={{ borderColor: C.bege2, background: C.white }}>
+      <footer className="flex flex-col items-center p-8 text-center border-t" style={{ borderColor: C.bege2, background: C.white }}>
+        <div className="h-8 w-8 md:h-12 md:w-12 shrink-0 mb-2">
+          <img
+            src="/logo.png"
+            alt="Coral Acessórios Logo"
+            className="h-full w-full object-contain"
+            />
+        </div>
         <p className="text-[9px] tracking-[0.4em] uppercase font-light" style={{ color: C.bege3 }}>
-          © 2025 Coral Acessórios
+          © 2026 Coral Acessórios
         </p>
       </footer>
 

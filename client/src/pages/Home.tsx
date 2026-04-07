@@ -16,7 +16,7 @@ import {
 const NOISE_PATTERN = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' seed='2' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03' /%3E%3C/svg%3E`;
 
 const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER;
-const MAPS_ADDRESS = "Teresina,+PI"; // ⭐ Alterar para o endereço desejado
+const MAPS_ADDRESS = encodeURIComponent("Av. Sen. Area Leão, 2185 - São Cristóvão, Teresina - PI, 64049-010");
 
 // ─── Paleta Coral ─────────────────────────────────────────────────────────────
 const C = {
@@ -264,7 +264,7 @@ export default function Home() {
                 </p>
                 <div className="flex items-center gap-2 text-sm" style={{ color: C.noir }}>
                   <MapPin className="w-4 h-4 shrink-0" style={{ color: C.red1 }} />
-                  Teresina, Piauí
+                    Manhattan River Center  - Av. Senador Area Leão, 2185               
                 </div>
               </div>
 
@@ -294,16 +294,14 @@ export default function Home() {
           className="w-full py-12 px-6"
           style={{ borderTop: `1px solid ${C.bege2}`, background: C.white }}
         >
-          <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-4">
-            <span
-              className="text-3xl font-black tracking-tight leading-none"
-              style={{ color: C.red1, fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: "-0.03em" }}
-            >
-              CORAL
-            </span>
-            <span className="text-[9px] font-light tracking-[0.5em] uppercase" style={{ color: C.bege3 }}>
-              Acessórios
-            </span>
+          <div className="max-w-xl mx-auto flex flex-col items-center text-center gap-1">
+            <div className="h-8 w-8 md:h-12 md:w-12 shrink-0">
+              <img
+                src="/logo.png"
+                alt="Coral Acessórios Logo"
+                className="h-full w-full object-contain"
+              />
+            </div>
 
             <div className="flex flex-col items-center gap-2 mt-2">
               <a
@@ -331,7 +329,7 @@ export default function Home() {
 
           <div className="mt-10 text-center">
             <p className="text-[10px] font-light" style={{ color: C.bege3 }}>
-              © 2025 Coral Acessórios · Todos os direitos reservados
+              © 2026 Coral Acessórios · Todos os direitos reservados
             </p>
           </div>
         </footer>
