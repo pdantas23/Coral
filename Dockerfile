@@ -1,0 +1,14 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY server/ ./server/
+COPY shared/ ./shared/
+COPY .env* ./
+
+EXPOSE 3001
+
+CMD ["node_modules/.bin/tsx", "server/index.ts"]
