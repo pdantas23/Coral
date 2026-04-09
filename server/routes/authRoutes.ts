@@ -12,28 +12,36 @@ const isProduction = process.env.NODE_ENV === "production";
 // ─── Helpers de cookie ────────────────────────────────────────────────────────
 
 function setAuthCookies(res: any, session: any) {
-  res.cookie(AUTH_COOKIE_ACCESS, session.access_token, {
+  // Pega o domínio do .env ou usa o padrão da Coral
+  const domain = process.env.COOKIE_DOMAIN || ".coralacessorios.com.br";
+
+  const commonOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: (isProduction ? "none" : "lax") as "none" | "lax",
+    domain: isProduction ? domain : undefined,
     path: "/",
+  };
+
+  res.cookie(AUTH_COOKIE_ACCESS, session.access_token, {
+    ...commonOptions,
     maxAge: session.expires_in * 1000,
   });
 
   res.cookie(AUTH_COOKIE_REFRESH, session.refresh_token, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
-    path: "/",
+    ...commonOptions,
     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 dias
   });
 }
 
 function clearAuthCookies(res: any) {
+  const domain = process.env.COOKIE_DOMAIN || ".coralacessorios.com.br";
+  
   const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
     sameSite: (isProduction ? "none" : "lax") as "none" | "lax",
+    domain: isProduction ? domain : undefined,
     path: "/",
   };
   res.clearCookie(AUTH_COOKIE_ACCESS, cookieOptions);
@@ -52,6 +60,7 @@ router.post("/login", async (req, res) => {
 
     const result = await loginWithEmailAndPassword(email, password);
 
+    // Se o Supabase retornar erro, aqui dará 401
     if (result.error || !result.session || !result.user) {
       return res.status(401).json({ error: result.error || "Credenciais inválidas." });
     }
@@ -62,7 +71,8 @@ router.post("/login", async (req, res) => {
       user: { id: result.user.id, email: result.user.email ?? null },
       profile: result.profile,
     });
-  } catch {
+  } catch (error) {
+    console.error("Erro no login:", error);
     return res.status(500).json({ error: "Erro interno ao fazer login." });
   }
 });
@@ -89,7 +99,8 @@ router.get("/me", async (req, res) => {
       user: { id: result.user.id, email: result.user.email ?? null },
       profile: result.profile,
     });
-  } catch {
+  } catch (error) {
+    console.error("Erro no /me:", error);
     return res.status(500).json({ authenticated: false, error: "Erro ao validar sessão." });
   }
 });
