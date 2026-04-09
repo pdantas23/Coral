@@ -525,7 +525,7 @@ export default function Comercial() {
           onClick={closeModal}
         >
           <div
-            className="relative w-[90vw] h-[60vh] md:w-[60vw] md:h-[70vh] bg-white rounded-xl shadow-2xl"            
+            className="relative w-[90vw] h-[60vh] md:w-[60vw] md:h-[80vh] bg-white rounded-xl shadow-2xl"            
             style={{ boxShadow: "0 30px 80px rgba(51,51,51,0.20)" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -548,32 +548,34 @@ export default function Comercial() {
               </button>
             </div>
 
-            {/* Corpo — sem scroll, tudo estático */}
-            <form onSubmit={handleSubmit} className="p-3 space-y-2">
+            {/* ── FORMULÁRIO COM DIMENSIONAMENTO PROPORCIONAL (SEM SCROLL) ──────────────── */}
+            <form 
+              onSubmit={handleSubmit} 
+              className="p-[2vh] flex-1 flex flex-col justify-between overflow-hidden"
+              style={{ gap: "1.5vh" }}
+            >
               {formError && (
-                <div className="px-3 py-2 text-xs font-light rounded-sm"
+                <div className="px-[1.5vh] py-[1vh] text-[1.1vh] font-light rounded-sm shrink-0"
                   style={{ backgroundColor: C.pink1, color: C.red2, border: `1px solid ${C.pink2}` }}>
                   {formError}
                 </div>
               )}
 
-              {/* ── IMAGENS ──────────────────────────────────────────────── */}
-              <section>
-                {/* Cabeçalho compacto */}
-                <div className="mb-1.5 flex items-center justify-between">
-                  <p className="text-[10px] md:text-sm font-light tracking-[0.35em] uppercase" style={{ color: C.bege3 }}>
+              {/* ── SEÇÃO: IMAGENS ──────────────────────────────────────────────── */}
+              <section className="shrink-0">
+                <div className="mb-[0.8vh] flex items-center justify-between">
+                  <p className="text-[1.5vh] font-light tracking-[0.35em] uppercase" style={{ color: C.bege3 }}>
                     Imagens — máx. 5 MB
                   </p>
-                  <span className="text-[8px] font-light" style={{ color: C.bege3 }}>
+                  <span className="text-[1vh] font-light" style={{ color: C.bege3 }}>
                     {images.filter(i => i.path && !i.error).length} foto(s)
                   </span>
                 </div>
 
-                {/* Tira horizontal: capa + miniaturas + botão adicionar */}
-                <div className="flex items-center gap-2">
-                  {/* Preview capa */}
+                <div className="flex items-center gap-[1.5vh]">
+                  {/* Preview Capa Proporcional */}
                   <div
-                    className="relative h-24 w-24 md:h-32 md:w-32 shrink-0 overflow-hidden flex items-center justify-center rounded-sm"
+                    className="relative h-[20vh] w-[20vh] shrink-0 overflow-hidden flex items-center justify-center rounded-sm"
                     style={{
                       backgroundColor: C.bege1,
                       border: `2px dashed ${coverImage?.previewUrl ? C.red1 : C.bege2}`,
@@ -582,220 +584,123 @@ export default function Comercial() {
                     {coverImage?.previewUrl ? (
                       <>
                         <img src={coverImage.previewUrl} alt="Capa" className="h-full w-full object-cover" />
-                        {coverImage.uploading && (
-                          <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
-                            <Loader2 className="h-4 w-4 animate-spin text-white" />
-                          </div>
-                        )}
-                        <div
-                          className="absolute top-1 left-1 px-1.5 py-0.5 text-[7px] font-medium tracking-widest uppercase rounded-sm"
-                          style={{ backgroundColor: C.red1, color: C.white }}
-                        >
+                        <div className="absolute top-[0.5vh] left-[0.5vh] px-[0.8vh] py-[0.3vh] text-[0.9vh] font-medium tracking-widest uppercase rounded-sm"
+                          style={{ backgroundColor: C.red1, color: C.white }}>
                           Capa
                         </div>
                       </>
                     ) : (
-                      <div className="flex flex-col items-center gap-1">
-                        <ImagePlus className="h-5 w-5" style={{ color: C.bege3 }} />
-                        <span className="text-[8px] font-light" style={{ color: C.bege3 }}>Sem capa</span>
+                      <div className="flex flex-col items-center gap-[0.5vh]">
+                        <ImagePlus className="h-[2vh] w-[2vh]" style={{ color: C.bege3 }} />
+                        <span className="text-[0.9vh] font-light" style={{ color: C.bege3 }}>Sem capa</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Miniaturas + botão adicionar em linha */}
-                  <div className="flex flex-wrap gap-1.5 flex-1">
+                  {/* Miniaturas em linha horizontal */}
+                  <div className="flex flex-wrap gap-[0.8vh] flex-1 content-start">
                     {images.map((img, idx) => (
-                      <div
-                        key={img.id}
-                        className="relative h-20 w-20 md:h-24 md:w-24 shrink-0 overflow-hidden rounded-sm"
-                        style={{
-                          border: `2px solid ${idx === 0 ? C.red1 : C.bege2}`,
-                          backgroundColor: C.bege1,
-                        }}
-                      >
+                      <div key={img.id} className="relative h-[12vh] w-[12vh] shrink-0 overflow-hidden rounded-sm"
+                        style={{ border: `1px solid ${idx === 0 ? C.red1 : C.bege2}`, backgroundColor: C.bege1 }}>
                         <img src={img.previewUrl} alt="" className="h-full w-full object-cover" />
-                        {img.uploading && (
-                          <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.45)" }}>
-                            <Loader2 className="h-3 w-3 animate-spin text-white" />
-                          </div>
-                        )}
-                        {img.error && (
-                          <div className="absolute inset-0 flex items-center justify-center p-0.5" style={{ backgroundColor: "rgba(180,50,50,0.7)" }}>
-                            <span className="text-[7px] text-white text-center leading-tight">{img.error}</span>
-                          </div>
-                        )}
-                        {!img.uploading && !img.error && img.path && idx !== 0 && (
-                          <div className="absolute bottom-0.5 right-0.5">
-                            <CheckCircle2 className="h-3 w-3 drop-shadow" style={{ color: "#6ee7b7" }} />
-                          </div>
-                        )}
-                        {!img.uploading && (
-                          <div className="absolute right-0.5 top-0.5 flex flex-col gap-0.5">
-                            <button
-                              type="button" onClick={() => removeImage(img.id)}
-                              disabled={removingImageId === img.id}
-                              className="flex h-4 w-4 items-center justify-center transition hover:opacity-70 disabled:opacity-40 rounded-full"
-                              style={{ backgroundColor: "rgba(0,0,0,0.55)", color: C.white, border: "none", cursor: "pointer" }}
-                            >
-                              {removingImageId === img.id ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <X className="h-2.5 w-2.5" />}
-                            </button>
-                            {idx !== 0 && img.path && (
-                              <button
-                                type="button" onClick={() => setCover(img.id)}
-                                className="flex h-4 w-4 items-center justify-center transition hover:opacity-70 rounded-full"
-                                style={{ backgroundColor: "rgba(0,0,0,0.55)", color: C.white, border: "none", cursor: "pointer" }}
-                              >
-                                <Star className="h-2.5 w-2.5" />
-                              </button>
-                            )}
-                          </div>
-                        )}
+                        <button type="button" onClick={() => removeImage(img.id)}
+                          className="absolute right-[0.3vh] top-[0.3vh] flex h-[1.8vh] w-[1.8vh] items-center justify-center rounded-full"
+                          style={{ backgroundColor: "rgba(0,0,0,0.55)", color: C.white }}>
+                          <X className="h-[1vh] w-[1vh]" />
+                        </button>
                       </div>
                     ))}
 
-                    {/* Botão adicionar */}
-                    <div>
-                      <input
-                        ref={fileInputRef} type="file" accept="image/*" multiple
-                        onChange={handleFileChange} disabled={isDisabled}
-                        className="hidden" id="comercial-images-input"
-                      />
-                      <label
-                        htmlFor="comercial-images-input"
-                        className={`flex h-20 w-20 md:h-24 md:w-24 flex-col items-center justify-center gap-0.5 cursor-pointer transition hover:opacity-70 rounded-sm ${isDisabled ? "pointer-events-none opacity-40" : ""}`}
-                        style={{ border: `2px dashed ${C.bege2}`, backgroundColor: C.bege1 }}
-                      >
-                        <ImagePlus className="h-4 w-4" style={{ color: C.bege3 }} />
-                        <span className="text-[7px] font-light text-center" style={{ color: C.bege3 }}>
-                          {anyUploading ? "..." : "+"}
-                        </span>
+                    {/* Botão Adicionar Proporcional */}
+                    <div className="h-[12vh] w-[12vh]">
+                      <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} disabled={isDisabled} className="hidden" id="modal-img-input" />
+                      <label htmlFor="modal-img-input"
+                        className="flex h-full w-full flex-col items-center justify-center gap-[0.3vh] cursor-pointer rounded-sm"
+                        style={{ border: `1px dashed ${C.bege2}`, backgroundColor: C.bege1 }}>
+                        <ImagePlus className="h-[1.5vh] w-[1.5vh]" style={{ color: C.bege3 }} />
+                        <span className="text-[0.8vh] font-light" style={{ color: C.bege3 }}>{anyUploading ? "..." : "+"}</span>
                       </label>
                     </div>
                   </div>
                 </div>
               </section>
 
-              {/* ── DADOS ───────────────────────────────────────────────── */}
-              <section className="space-y-2">
+              {/* ── SEÇÃO: DADOS (ALTURAS EM VH) ────────────────────────────────── */}
+              <section className="flex-1 flex flex-col justify-center" style={{ gap: "1.2vh" }}>
                 {/* Nome */}
                 <div>
-                  <label className="block text-[10px] md:text-sm tracking-[0.3em] uppercase font-light mb-1" style={{ color: C.bege3 }}>
-                    Nome *
-                  </label>
-                  <input
-                    type="text" value={form.nome} onChange={(e) => setField("nome", e.target.value)}
-                    required placeholder="Ex: Colar Dourado"
-                    className="w-full h-10 py-1.5 px-3 text-xs font-light outline-none transition rounded-sm"
+                  <label className="block text-[1.5vh] tracking-[0.3em] uppercase font-light mb-[0.4vh]" style={{ color: C.bege3 }}>Nome *</label>
+                  <input type="text" value={form.nome} onChange={(e) => setField("nome", e.target.value)} required 
+                    className="w-full h-[5vh] px-[1.2vh] text-[1.3vh] font-light outline-none rounded-sm transition"
                     style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.owhite, color: C.noir }}
-                    onFocus={(e) => (e.target.style.borderColor = C.red1)}
-                    onBlur={(e) => (e.target.style.borderColor = C.bege2)}
                   />
                 </div>
 
                 {/* Descrição */}
                 <div>
-                  <label className="block text-[10px] md:text-sm tracking-[0.3em] uppercase font-light mb-1" style={{ color: C.bege3 }}>
-                    Descrição *
-                  </label>
-                  <textarea
-                    value={form.descricao} onChange={(e) => setField("descricao", e.target.value)}
-                    required rows={1} placeholder="Descreva o produto..."
-                    className="w-full h-10 flex items-center resize-none py-2.5 px-3 text-xs font-light outline-none transition rounded-sm"                    style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.owhite, color: C.noir }}
-                    onFocus={(e) => (e.target.style.borderColor = C.red1)}
-                    onBlur={(e) => (e.target.style.borderColor = C.bege2)}
+                  <label className="block text-[1.5vh] tracking-[0.3em] uppercase font-light mb-[0.4vh]" style={{ color: C.bege3 }}>Descrição *</label>
+                  <textarea value={form.descricao} onChange={(e) => setField("descricao", e.target.value)} required rows={1}
+                    className="w-full h-[5vh] flex items-center py-[1vh] px-[1.2vh] text-[1.3vh] font-light outline-none rounded-sm resize-none"
+                    style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.owhite, color: C.noir }}
                   />
                 </div>
 
-                {/* Preço acima, Categoria abaixo (mobile); lado a lado no desktop */}
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {/* Preço e Categoria */}
+                <div className="flex flex-col gap-[1.5vh]">
                   <div>
-                    <label className="block text-[10px] md:text-sm tracking-[0.3em] uppercase font-light mb-1" style={{ color: C.bege3 }}>
-                      Preço (R$) *
-                    </label>
-                    <input
-                      type="text" value={form.preco} onChange={(e) => setField("preco", e.target.value)}
-                      required placeholder="0,00"
-                      className="flex items-center w-full py-1.5 px-3 text-xs font-light outline-none transition h-10 rounded-sm"
-                      style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.owhite, color: C.noir }}
-                      onFocus={(e) => (e.target.style.borderColor = C.red1)}
-                      onBlur={(e) => (e.target.style.borderColor = C.bege2)}
+                    <label className="block text-[1.5vh] tracking-[0.3em] uppercase font-light mb-[0.4vh]" style={{ color: C.bege3 }}>Preço (R$) *</label>
+                    <input type="text" value={form.preco} onChange={(e) => setField("preco", e.target.value)} required 
+                      className="w-full h-[5vh] px-[1.2vh] text-[1.3vh] font-light outline-none rounded-sm"
+                      style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.owhite }}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] md:text-sm tracking-[0.3em] uppercase font-light mb-1" style={{ color: C.bege3 }}>
-                      Categoria
-                    </label>
-                    <CategoryDropdown
-                      value={form.categoria ?? ""}
-                      onChange={(value) => setField("categoria", value ? (value as FormState["categoria"]) : null)}
-                      options={[
-                        { value: "", label: "Sem categoria" },
-                        ...PRODUCT_CATEGORIES.map((cat) => ({
-                          value: cat,
-                          label: CATEGORY_LABELS[cat],
-                        })),
-                      ]}
-                    />
+                    <label className="block text-[1.5vh] tracking-[0.3em] uppercase font-light mb-[0.4vh]" style={{ color: C.bege3 }}>Categoria</label>
+                    <div className="h-[5vh] text-[1.5vh]">
+                      <CategoryDropdown
+                        value={form.categoria ?? ""}
+                        onChange={(val) => 
+                          // Usamos 'as any' ou o tipo específico para dizer ao TS: "Eu garanto que esse valor é válido"
+                          setField("categoria", val ? (val as typeof form.categoria) : null)
+                        }
+                        options={[
+                          { value: "", label: "Sem categoria" },
+                          ...PRODUCT_CATEGORIES.map(cat => ({ 
+                            value: cat, 
+                            label: CATEGORY_LABELS[cat] 
+                          }))
+                        ]}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Checkboxes — sempre em linha */}
-                <div className="flex flex-row justify-start flex-wrap gap-x-4 gap-y-3 pb-3 pt-3">
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox" checked={form.promocao} onChange={(e) => setField("promocao", e.target.checked)}
-                      className="h-5 w-5" style={{ accentColor: C.red1 }}
-                    />
-                    <span className="text-[11px] font-light" style={{ color: C.noir }}>Marcar como destaque</span>
+                {/* Checkboxes em linha */}
+                <div className="flex items-center gap-[3vh] py-[0.5vh]">
+                  <label className="flex cursor-pointer items-center gap-[0.8vh]">
+                    <input type="checkbox" checked={form.promocao} onChange={(e) => setField("promocao", e.target.checked)}
+                      className="h-[1.8vh] w-[1.8vh]" style={{ accentColor: C.red1 }} />
+                    <span className="text-[1.1vh] font-light" style={{ color: C.noir }}>Destaque</span>
                   </label>
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox" checked={form.ativo} onChange={(e) => setField("ativo", e.target.checked)}
-                      className="h-5 w-5" style={{ accentColor: C.red1 }}
-                    />
-                    <span className="text-[11px] font-light" style={{ color: C.noir }}>Ativo no catálogo</span>
+                  <label className="flex cursor-pointer items-center gap-[0.8vh]">
+                    <input type="checkbox" checked={form.ativo} onChange={(e) => setField("ativo", e.target.checked)}
+                      className="h-[1.8vh] w-[1.8vh]" style={{ accentColor: C.red1 }} />
+                    <span className="text-[1.1vh] font-light" style={{ color: C.noir }}>Ativo</span>
                   </label>
                 </div>
               </section>
 
-              {/* Ações */}
-              <div className="flex items-center justify-end gap-2 pt-2" style={{ borderTop: `1px solid ${C.bege1}` }}>
-                {!formLoading && (
-                  <button
-                    type="button" onClick={closeModal} disabled={anyUploading}
-                    className="flex h-8 items-center justify-center px-4 text-[10px] font-medium tracking-[0.2em] uppercase transition disabled:opacity-40 cursor-pointer rounded-sm"
-                    style={{
-                      backgroundColor: "transparent",
-                      color: C.noir,
-                      border: `1px solid ${C.bege2}`,
-                    }}
-                  >
-                    Cancelar
-                  </button>
-                )}
-
-                <button
-                  type="submit" disabled={formLoading || anyUploading}
-                  className="relative flex h-8 items-center justify-center gap-1.5 px-4 text-[10px] font-medium uppercase transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer rounded-sm"
-                  style={{
-                    backgroundColor: C.red1,
-                    color: C.white,
-                    border: "none",
-                    letterSpacing: "0.2em",
-                  }}
-                >
-                  {(formLoading || anyUploading) && (
-                    <Loader2 className="h-3 w-3 animate-spin shrink-0" />
-                  )}
-                  <span style={{ display: "inline-block", whiteSpace: "nowrap" }}>
-                    {formLoading
-                      ? "Salvando..."
-                      : anyUploading
-                      ? "Aguardando uploads..."
-                      : editingProduct
-                      ? "Salvar alterações"
-                      : "Cadastrar produto"}
-                  </span>
+              {/* ── AÇÕES (RODAPÉ) ────────────────────────────────────────────── */}
+              <div className="flex items-center justify-end gap-[1.2vh] pt-[1.5vh] shrink-0" style={{ borderTop: `1px solid ${C.bege1}` }}>
+                <button type="button" onClick={closeModal}
+                  className="h-[4vh] px-[2.5vh] text-[1.1vh] font-medium tracking-[0.2em] uppercase rounded-sm border transition cursor-pointer"
+                  style={{ borderColor: C.bege2, color: C.noir }}>
+                  Cancelar
+                </button>
+                <button type="submit" disabled={formLoading || anyUploading}
+                  className="h-[4vh] px-[2.5vh] text-[1.1vh] font-medium uppercase tracking-[0.2em] rounded-sm text-white transition disabled:opacity-40 cursor-pointer"
+                  style={{ backgroundColor: C.red1 }}>
+                  {formLoading ? "Salvando..." : editingProduct ? "Salvar" : "Cadastrar"}
                 </button>
               </div>
             </form>
