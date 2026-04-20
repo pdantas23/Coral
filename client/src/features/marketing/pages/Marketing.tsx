@@ -1,337 +1,448 @@
-import { useEffect, useState } from "react";
-import DashboardLayout from "@/components/DashboardLayout";
-import { listProducts } from "@/features/catalog/catalogApi";
-import type { Product } from "@/features/catalog/catalogTypes";
-import { ExternalLink, Copy, CheckCheck, TrendingUp, Package, Tag } from "lucide-react";
+// ─── /marketing — Dashboard Marketing (READ-ONLY, estrutura idêntica a Comercial) ─────
+import DropdownCustom from "@/components/ui/DropdownCustom";
+import LeadModal from "@/components/ui/LeadModal";
+import { useAuth } from "@/features/auth/useAuth";
+import type { Lead, LeadEstagio, TipoEvento } from "@shared/const";
+import { LEAD_ESTAGIO_LABELS, LEAD_ESTAGIO_VALUES, TIPO_EVENTO_VALUES } from "@shared/const";
+import { Eye, MessageCircle, Search, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
-// ─── Paleta Coral ─────────────────────────────────────────────────────────────
-const C = {
-  red1:    "#FD6E5E",
-  red2:    "#CC4834",
-  pink1:   "#FEEDED",
-  noir:    "#333333",
-  bege1:   "#EDE8E1",
-  bege2:   "#DED6BF",
-  bege3:   "#C8C1AC",
-  owhite:  "#FAF5ED",
-  white:   "#FFFFFF",
-} as const;
+// ─── Design System Forma Eventos — Teal Ação, Purple Identidade ──────────
+const COLORS = {
+  BG: "#FFFFFF",                    // Fundo branco
+  TEAL: "#26C2B9",                  // Cor de ação/hover/destaque
+  PURPLE: "#6019D2",                // Cor de texto/títulos
+  TEXT_PRIMARY: "#1F2937",          // Cinza escuro para texto
+  TEXT_SECONDARY: "rgba(31, 41, 55, 0.70)",
+  TEXT_MUTED: "rgba(31, 41, 55, 0.50)",
+  BORDER_LIGHT: "#E5E7EB",          // Cinza claro para bordas
+  SHADOW: "0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)",
+};
 
-const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER as string | undefined;
+// ─── Tag colors per tipo_evento ──────────────────────────────────────────────
+const TAG_STYLES: Record<TipoEvento, { bg: string; text: string; label: string }> = {
+  formatura:   { bg: `rgba(96, 25, 210, 0.08)`, text: "#6019D2", label: "Formatura" },
+  corporativo: { bg: `rgba(38, 194, 185, 0.08)`, text: "#26C2B9", label: "Corporativo" },
+  celebracao:  { bg: `rgba(217, 119, 6, 0.08)`, text: "#D97706", label: "Celebração" },
+  outros:      { bg: `rgba(107, 114, 128, 0.08)`, text: "#6B7280", label: "Outros" },
+};
 
-const NAV = [{ label: "Marketing", href: "/marketing" }];
+const ESTAGIO_COLORS: Record<LeadEstagio, { bg: string; text: string }> = {
+  novo: { bg: `rgba(38, 194, 185, 0.08)`, text: "#26C2B9" },
+  em_contato: { bg: `rgba(96, 25, 210, 0.08)`, text: "#6019D2" },
+  proposta_enviada: { bg: `rgba(217, 119, 6, 0.08)`, text: "#D97706" },
+  fechado: { bg: `rgba(34, 197, 94, 0.08)`, text: "#22C55E" },
+  perdido: { bg: `rgba(239, 68, 68, 0.08)`, text: "#EF4444" },
+};
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function buildProductLink(productId: string): string {
-  return `${window.location.origin}/catalogo?produto=${productId}`;
-}
-
-function buildWhatsAppBlast(products: Product[]): string {
-  const number = (WHATSAPP_NUMBER ?? "").replace(/\D/g, "");
-  const destaques = products.filter((p) => p.promocao);
-  let text = "✨ *Coral Acessórios — Novidades da coleção*\n\n";
-  if (destaques.length > 0) {
-    text += "🌸 *Produtos em destaque:*\n";
-    for (const p of destaques.slice(0, 5)) {
-      text += `• ${p.nome} — R$ ${p.preco.toFixed(2).replace(".", ",")}\n`;
-    }
-    text += "\n";
-  }
-  text += "Ver coleção completa:\n";
-  text += `${window.location.origin}/catalogo`;
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
-}
-
-// ─── Stat card ────────────────────────────────────────────────────────────────
-
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+function EventTag({ tipo }: { tipo: TipoEvento }) {
+  const s = TAG_STYLES[tipo];
   return (
-    <div
-      className="flex flex-col gap-1 p-6 rounded-xl"
-      style={{ backgroundColor: C.white, border: `1px solid ${C.bege2}` }}
+    <span
+      className="inline-block px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-full whitespace-nowrap"
+      style={{ backgroundColor: s.bg, color: s.text }}
     >
-      <p className="text-[9px] font-light tracking-[0.45em] uppercase" style={{ color: C.bege3 }}>{label}</p>
-      <p
-        className="text-3xl font-bold"
-        style={{ color: C.noir, fontFamily: "'Playfair Display', Georgia, serif" }}
-      >
-        {value}
-      </p>
-      {sub && <p className="text-[10px] font-light" style={{ color: C.bege3 }}>{sub}</p>}
-    </div>
+      {s.label}
+    </span>
   );
 }
 
-// ─── Copy button ──────────────────────────────────────────────────────────────
-
-function CopyButton({ text, label = "Copiar link" }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch { /* ignore */ }
-  }
-
+function EstagioTag({ estagio }: { estagio: LeadEstagio }) {
+  const s = ESTAGIO_COLORS[estagio];
   return (
-    <button
-      type="button" onClick={handleCopy}
-      className="flex items-center gap-1.5 text-[10px] font-medium tracking-[0.25em] uppercase transition hover:opacity-60"
-      style={{ color: copied ? C.red1 : C.bege3, background: "none", border: "none", cursor: "pointer" }}
+    <span
+      className="inline-block px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-full whitespace-nowrap"
+      style={{ backgroundColor: s.bg, color: s.text }}
     >
-      {copied ? <CheckCheck className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-      {copied ? "Copiado!" : label}
-    </button>
+      {LEAD_ESTAGIO_LABELS[estagio]}
+    </span>
   );
 }
 
-// ─── Marketing ────────────────────────────────────────────────────────────────
+// ─── Date formatter ──────────────────────────────────────────────────────────
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function fmtTime(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+// ─── Clean phone number for WhatsApp ─────────────────────────────────────────
+function cleanPhoneForWhatsApp(phone: string): string {
+  const cleaned = phone.replace(/\D/g, "");
+  return cleaned.startsWith("55") ? cleaned : `55${cleaned}`;
+}
 
 export default function Marketing() {
-  const [products, setProducts]   = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError]         = useState("");
+  const { profile, logout } = useAuth();
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // ── Filtros Avançados ─────────────────────────────────────────────────────
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterTipo, setFilterTipo] = useState<TipoEvento | "todos">("todos");
+  const [filterEstagio, setFilterEstagio] = useState<LeadEstagio | "todos">("todos");
+  const [filterDateStart, setFilterDateStart] = useState("");
+  const [filterDateEnd, setFilterDateEnd] = useState("");
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+
+  const fetchLeads = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams();
+      if (filterTipo !== "todos") params.append("tipo", filterTipo);
+      if (filterEstagio !== "todos") params.append("estagio", filterEstagio);
+      if (filterDateStart) params.append("data_inicio", filterDateStart);
+      if (filterDateEnd) params.append("data_fim", filterDateEnd);
+
+      const url = `/api/leads${params.toString() ? "?" + params.toString() : ""}`;
+      const res = await fetch(url, { credentials: "include" });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError("Sessão expirada. Faça login novamente.");
+        } else {
+          setError("Erro ao buscar leads.");
+        }
+        setLeads([]);
+        return;
+      }
+
+      const data = await res.json();
+      setLeads(data.leads ?? []);
+    } catch (err) {
+      console.error("Erro ao buscar leads:", err);
+      setError("Erro ao buscar leads.");
+    } finally {
+      setLoading(false);
+    }
+  }, [filterTipo, filterEstagio, filterDateStart, filterDateEnd]);
 
   useEffect(() => {
-    listProducts({ ativo: true })
-      .then((res) => setProducts(res.data))
-      .catch(() => setError("Não foi possível carregar os produtos."))
-      .finally(() => setIsLoading(false));
-  }, []);
+    fetchLeads();
+  }, [fetchLeads]);
 
-  const total       = products.length;
-  const destaques   = products.filter((p) => p.promocao).length;
-  const catalogUrl  = `${typeof window !== "undefined" ? window.location.origin : ""}/catalogo`;
-  const whatsappUrl = products.length > 0 ? buildWhatsAppBlast(products) : "#";
+  // ── Filtrar por busca global ──────────────────────────────────────────────
+  const filteredLeads = leads.filter(lead =>
+    lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    lead.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  const today = new Date().toISOString().slice(0, 10);
+  const leadsToday = filteredLeads.filter(l => l.criado_em.slice(0, 10) === today).length;
+  const leadsNovos = filteredLeads.filter(l => l.estagio === "novo").length;
+  const leadsEmContato = filteredLeads.filter(l => l.estagio === "em_contato").length;
+  const leadsFechados = filteredLeads.filter(l => l.estagio === "fechado").length;
+  const leadsPerdidos = filteredLeads.filter(l => l.estagio === "perdido").length;
+
+  const stats = [
+    { label: "Leads Totais", value: filteredLeads.length.toString(), color: COLORS.TEAL },
+    { label: "Leads Hoje", value: leadsToday.toString(), color: COLORS.TEAL },
+    { label: "Novos", value: leadsNovos.toString(), color: "#26C2B9" },
+    { label: "Em Contato", value: leadsEmContato.toString(), color: "#A991F7" },
+    { label: "Fechados", value: leadsFechados.toString(), color: "#4CAF50" },
+    { label: "Perdidos", value: leadsPerdidos.toString(), color: "#F44336" },
+  ];
 
   return (
-    <DashboardLayout navItems={NAV}>
-      <div className="space-y-8">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: COLORS.BG, color: COLORS.TEXT_PRIMARY }}>
 
-        {/* Cabeçalho */}
+      {/* ── TOPBAR ──────────────────────────────────────────────────────── */}
+      <header
+        className="flex flex-row items-center justify-between px-6 py-4 border-b"
+        style={{ backgroundColor: COLORS.BG, borderColor: COLORS.BORDER_LIGHT }}
+      >
         <div>
-          <p className="text-[9px] font-light tracking-[0.45em] uppercase mb-1" style={{ color: C.bege3 }}>Área</p>
-          <h1
-            className="text-2xl font-bold"
-            style={{ color: C.noir, fontFamily: "'Playfair Display', Georgia, serif" }}
-          >
-            Marketing
+        </div>
+
+        <div className="text-center">
+          <img 
+            src="/icon.png" 
+            alt="Logo Forma Eventos" 
+            className="w-40 h-10 object-contain" 
+          />
+        </div>
+        <div className="flex items-center gap-4">
+          <button onClick={logout}
+            className="text-xs font-medium px-4 py-2 transition hover:opacity-80 cursor-pointer rounded"
+            style={{ backgroundColor: COLORS.TEAL, color: "#FFFFFF", border: "none" }}>
+            Sair
+          </button>
+        </div>
+      </header>
+
+      {/* ── CONTEÚDO ──────────────────────────────────────────────────────── */}
+      <main className="flex-1 p-6 max-w-6xl mx-auto w-full">
+        <div className="pt-8 pb-6 border-b border-slate-100 mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-[#3D2880]">
+            Painel de Marketing
           </h1>
-          <p className="text-xs font-light mt-0.5" style={{ color: C.bege3 }}>
-            Visão geral da coleção e ferramentas de divulgação
+          <p className="text-slate-500 text-lg">
+            Gerencie e analise a performance dos seus leads em tempo real.
           </p>
         </div>
 
-        {/* Stats */}
-        {!isLoading && !error && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <StatCard label="Total de produtos" value={total} sub="publicados no catálogo" />
-            <StatCard label="Destaques" value={destaques} sub="marcados como promoção" />
-            <StatCard label="Catálogo" value="Público" sub="acessível sem login" />
-          </div>
-        )}
-
-        {/* Ferramentas de divulgação */}
-        <section>
-          <p className="text-[9px] tracking-[0.45em] uppercase font-light mb-4" style={{ color: C.bege3 }}>
-            Divulgação
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-            {/* Link do catálogo */}
+        {/* ── STATS CARDS (Métricas de Funil) ───────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          {stats.map(({ label, value, color }) => (
             <div
-              className="p-6 flex flex-col gap-3 rounded-xl"
-              style={{ backgroundColor: C.white, border: `1px solid ${C.bege2}` }}
+              key={label}
+              className="p-5 flex flex-col gap-2 rounded text-center transition-all cursor-default"
+              style={{
+                backgroundColor: COLORS.BG,
+                border: `1px solid ${COLORS.BORDER_LIGHT}`,
+                boxShadow: COLORS.SHADOW,
+              }}
             >
-              <div className="flex items-center gap-2">
-                <ExternalLink className="h-3.5 w-3.5" style={{ color: C.red1 }} />
-                <p className="text-[9px] tracking-[0.4em] uppercase font-medium" style={{ color: C.noir }}>
-                  Link do catálogo
-                </p>
-              </div>
-              <p className="text-sm font-light break-all" style={{ color: C.bege3 }}>{catalogUrl}</p>
-              <p className="text-xs font-light" style={{ color: C.bege3 }}>
-                Compartilhe este link para que clientes acessem a coleção completa.
+              <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: COLORS.TEXT_MUTED }}>
+                {label}
               </p>
-              <div className="flex items-center gap-4 mt-1">
-                <CopyButton text={catalogUrl} />
-                <a
-                  href={catalogUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-[10px] font-light tracking-[0.3em] uppercase transition hover:opacity-60"
-                  style={{ color: C.bege3, textDecoration: "none" }}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Abrir
-                </a>
-              </div>
-            </div>
-
-            {/* Mensagem WhatsApp */}
-            <div
-              className="p-6 flex flex-col gap-3 rounded-xl"
-              style={{ backgroundColor: C.white, border: `1px solid ${C.bege2}` }}
-            >
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-3.5 w-3.5" style={{ color: C.red1 }} />
-                <p className="text-[9px] tracking-[0.4em] uppercase font-medium" style={{ color: C.noir }}>
-                  Disparo WhatsApp
-                </p>
-              </div>
-              <p className="text-sm font-medium" style={{ color: C.noir }}>
-                Mensagem pré-formatada com destaques
-              </p>
-              <p className="text-xs font-light" style={{ color: C.bege3 }}>
-                Abre o WhatsApp com uma mensagem pronta para envio com as peças em destaque.
-              </p>
-              <a
-                href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-                className="mt-1 self-start flex items-center gap-1.5 text-[11px] font-medium tracking-[0.25em] uppercase transition hover:opacity-85 rounded-full px-5 py-2.5"
-                style={{
-                  color: C.white,
-                  background: `linear-gradient(135deg, ${C.red1} 0%, ${C.red2} 100%)`,
-                  textDecoration: "none",
-                  boxShadow: "0 4px 14px rgba(253,110,94,0.25)",
-                }}
+              <p
+                className="text-2xl font-bold leading-none"
+                style={{ fontFamily: "'Poppins', sans-serif", color }}
               >
-                Abrir no WhatsApp
-              </a>
+                {loading ? "—" : value}
+              </p>
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
 
-        {/* Produtos destaques */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[9px] tracking-[0.45em] uppercase font-light" style={{ color: C.bege3 }}>
-              Produtos em destaque
+        {/* ── TABELA DE LEADS ──────────────────────────────────────────────── */}
+        <div
+          className="p-6 rounded-lg"
+          style={{ backgroundColor: COLORS.BG, border: `1px solid ${COLORS.BORDER_LIGHT}`, boxShadow: COLORS.SHADOW }}
+        >
+
+          {/* ── BARRA DE FILTROS AVANÇADOS ───────────────────────────────── */}
+          <div className="mb-8">
+            <h3 className="text-sm font-semibold mb-4" style={{ color: COLORS.PURPLE }}>
+              Filtros Avançados
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full">
+
+              {/* Busca Global */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: COLORS.TEXT_MUTED }} />
+                <input
+                  type="text"
+                  placeholder="Nome ou email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-[12px] rounded outline-none transition-colors"
+                  style={{
+                    backgroundColor: COLORS.BG,
+                    border: `1px solid ${COLORS.BORDER_LIGHT}`,
+                    color: COLORS.TEXT_PRIMARY,
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = COLORS.TEAL;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = COLORS.BORDER_LIGHT;
+                  }}
+                />
+              </div>
+
+              {/* Tipo de Evento */}
+              <DropdownCustom
+                value={filterTipo}
+                onChange={(v) => setFilterTipo(v as TipoEvento | "todos")}
+                options={[
+                  { value: "todos", label: "Todos" },
+                  ...TIPO_EVENTO_VALUES.map(tipo => ({
+                    value: tipo,
+                    label: TAG_STYLES[tipo].label,
+                    color: { bg: TAG_STYLES[tipo].bg, text: TAG_STYLES[tipo].text },
+                  })),
+                ]}
+                placeholder="Tipo de evento"
+              />
+
+              {/* Estágio do Lead (READ-ONLY para marketing) */}
+              <DropdownCustom
+                value={filterEstagio}
+                onChange={(v) => setFilterEstagio(v as LeadEstagio | "todos")}
+                options={[
+                  { value: "todos", label: "Todos" },
+                  ...LEAD_ESTAGIO_VALUES.map(estagio => ({
+                    value: estagio,
+                    label: LEAD_ESTAGIO_LABELS[estagio],
+                    color: { bg: ESTAGIO_COLORS[estagio].bg, text: ESTAGIO_COLORS[estagio].text },
+                  })),
+                ]}
+                placeholder="Estágio do lead"
+              />
+
+              {/* Data Início */}
+              <input
+                type="date"
+                value={filterDateStart}
+                onChange={(e) => setFilterDateStart(e.target.value)}
+                className="w-full px-3 py-2 text-[12px] rounded outline-none transition-colors"
+                style={{
+                  backgroundColor: COLORS.BG,
+                  border: `1px solid ${COLORS.BORDER_LIGHT}`,
+                  color: COLORS.TEXT_PRIMARY,
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.TEAL;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.BORDER_LIGHT;
+                }}
+              />
+
+              {/* Data Fim */}
+              <input
+                type="date"
+                value={filterDateEnd}
+                onChange={(e) => setFilterDateEnd(e.target.value)}
+                className="w-full px-3 py-2 text-[12px] rounded outline-none transition-colors"
+                style={{
+                  backgroundColor: COLORS.BG,
+                  border: `1px solid ${COLORS.BORDER_LIGHT}`,
+                  color: COLORS.TEXT_PRIMARY,
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.TEAL;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = COLORS.BORDER_LIGHT;
+                }}
+              />
+            </div>
+
+            {/* Botão Limpar Filtros */}
+            {(searchTerm || filterTipo !== "todos" || filterEstagio !== "todos" || filterDateStart || filterDateEnd) && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterTipo("todos");
+                  setFilterEstagio("todos");
+                  setFilterDateStart("");
+                  setFilterDateEnd("");
+                }}
+                className="mt-3 text-xs font-medium px-3 py-1.5 rounded-full transition hover:opacity-80 flex items-center gap-2"
+                style={{ backgroundColor: `${COLORS.TEAL}20`, color: COLORS.TEAL, border: `1px solid ${COLORS.BORDER_LIGHT}` }}
+              >
+                <X className="h-3 w-3" />
+                Limpar filtros
+              </button>
+            )}
+          </div>
+
+          {/* ── HEADER TABELA ────────────────────────────────────────────── */}
+          <div className="mb-4">
+            <h2 className="text-base font-semibold" style={{ color: COLORS.TEXT_PRIMARY }}>
+              Leads ({filteredLeads.length})
+            </h2>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <p className="text-sm text-center py-8" style={{ color: COLORS.TEAL }}>
+              {error}
             </p>
-            <span className="text-[9px] font-light" style={{ color: C.bege3 }}>
-              {destaques} produto{destaques !== 1 ? "s" : ""}
-            </span>
-          </div>
+          )}
 
-          {isLoading ? (
-            <div className="py-12 flex flex-col items-center gap-3">
-              <div className="h-5 w-5 rounded-full border-2 border-t-transparent animate-spin"
-                style={{ borderColor: C.bege2, borderTopColor: C.red1 }} />
-              <p className="text-[10px] font-light tracking-widest uppercase" style={{ color: C.bege3 }}>Carregando...</p>
-            </div>
-          ) : error ? (
-            <div className="py-8 text-center">
-              <p className="text-xs font-light" style={{ color: C.bege3 }}>{error}</p>
-            </div>
-          ) : products.filter(p => p.promocao).length === 0 ? (
-            <div
-              className="py-12 text-center rounded-xl"
-              style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.white }}
-            >
-              <Tag className="h-6 w-6 mx-auto mb-3" style={{ color: C.bege3 }} />
-              <p className="text-xs font-light" style={{ color: C.bege3 }}>
-                Nenhum produto marcado como destaque.
-              </p>
-              <p className="text-[10px] font-light mt-1" style={{ color: C.bege3 }}>
-                Acesse a área Comercial para marcar produtos como destaque.
-              </p>
-            </div>
-          ) : (
-            <div
-              className="rounded-xl overflow-hidden"
-              style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.white }}
-            >
-              {products.filter(p => p.promocao).map((product, idx) => (
-                <div
-                  key={product.id}
-                  className="flex items-center gap-4 px-5 py-4"
-                  style={{ borderTop: idx === 0 ? "none" : `1px solid ${C.bege1}` }}
-                >
-                  <div
-                    className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md"
-                    style={{ backgroundColor: C.bege1 }}
-                  >
-                    {product.imagem_url
-                      ? <img src={product.imagem_url} alt={product.nome} className="h-full w-full object-cover" />
-                      : <div className="h-full w-full flex items-center justify-center">
-                          <Package className="h-4 w-4" style={{ color: C.bege3 }} />
-                        </div>
-                    }
-                  </div>
+          {/* Loading */}
+          {loading && !error && (
+            <p className="text-sm text-center py-12 font-light" style={{ color: COLORS.TEXT_MUTED }}>
+              Carregando...
+            </p>
+          )}
 
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate" style={{ color: C.noir }}>{product.nome}</p>
-                    <p className="text-xs font-light" style={{ color: C.red1 }}>
-                      R$ {product.preco.toFixed(2).replace(".", ",")}
-                    </p>
-                  </div>
+          {/* Empty */}
+          {!loading && !error && filteredLeads.length === 0 && (
+            <p className="text-sm text-center py-12 font-light" style={{ color: COLORS.TEXT_MUTED }}>
+              Nenhum lead encontrado com os filtros aplicados.
+            </p>
+          )}
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <CopyButton text={buildProductLink(product.id)} label="Copiar link" />
-                    <a
-                      href={buildProductLink(product.id)} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1 transition hover:opacity-50"
-                      style={{ color: C.bege3, textDecoration: "none" }}
+          {/* Table */}
+          {!loading && !error && filteredLeads.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${COLORS.BORDER_LIGHT}` }}>
+                    {["Nome", "E-mail", "Telefone", "Tipo", "Estágio", "Data", ""].map(h => (
+                      <th
+                        key={h}
+                        className="text-left py-3 px-3 text-[10px] font-semibold uppercase tracking-wider"
+                        style={{ color: COLORS.PURPLE }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLeads.map(lead => (
+                    <tr
+                      key={lead.id}
+                      style={{
+                        borderBottom: `1px solid ${COLORS.BORDER_LIGHT}`,
+                      }}
                     >
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                </div>
-              ))}
+                      <td className="py-3.5 px-3 font-medium text-sm" style={{ color: COLORS.TEXT_PRIMARY }}>
+                        {lead.nome}
+                      </td>
+                      <td className="py-3.5 px-3 text-xs font-light" style={{ color: COLORS.TEXT_SECONDARY }}>
+                        {lead.email}
+                      </td>
+                      <td className="py-3.5 px-3 text-xs font-light whitespace-nowrap" style={{ color: COLORS.TEXT_SECONDARY }}>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`https://wa.me/${cleanPhoneForWhatsApp(lead.telefone)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="transition hover:opacity-70 p-1 rounded"
+                            style={{ color: COLORS.TEAL }}
+                            title="Enviar mensagem via WhatsApp"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </a>
+                          <span>{lead.telefone}</span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <EventTag tipo={lead.tipo_evento} />
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <EstagioTag estagio={lead.estagio} />
+                      </td>
+                      <td className="py-3.5 px-3 text-xs font-light whitespace-nowrap" style={{ color: COLORS.TEXT_MUTED }}>
+                        {fmtDate(lead.criado_em)}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <button
+                          onClick={() => setSelectedLead(lead)}
+                          className="p-1.5 rounded transition hover:opacity-70"
+                          style={{ backgroundColor: `${COLORS.TEAL}15`, color: COLORS.TEAL }}
+                          title="Visualizar detalhes do lead"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </section>
+        </div>
+      </main>
 
-        {/* Todos os produtos */}
-        {!isLoading && !error && products.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[9px] tracking-[0.45em] uppercase font-light" style={{ color: C.bege3 }}>
-                Todos os produtos
-              </p>
-              <span className="text-[9px] font-light" style={{ color: C.bege3 }}>{total} no catálogo</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="group flex flex-col rounded-xl overflow-hidden"
-                  style={{ backgroundColor: C.white, border: `1px solid ${C.bege2}` }}
-                >
-                  <div className="overflow-hidden relative" style={{ aspectRatio: "1/1", backgroundColor: C.bege1 }}>
-                    {product.imagem_url
-                      ? <img
-                          src={product.imagem_url} alt={product.nome}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      : <div className="w-full h-full flex items-center justify-center">
-                          <Package className="h-6 w-6" style={{ color: C.bege3 }} />
-                        </div>
-                    }
-                    {product.promocao && (
-                      <div
-                        className="absolute top-1.5 left-1.5 px-2 py-0.5 text-[8px] font-medium tracking-wider uppercase rounded-full"
-                        style={{ backgroundColor: C.red1, color: C.white }}
-                      >
-                        Destaque
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3 flex flex-col gap-1.5">
-                    <p className="text-xs font-medium line-clamp-2 leading-snug" style={{ color: C.noir }}>{product.nome}</p>
-                    <p className="text-xs font-light" style={{ color: product.promocao ? C.red1 : C.bege3 }}>
-                      R$ {product.preco.toFixed(2).replace(".", ",")}
-                    </p>
-                    <div className="pt-1">
-                      <CopyButton text={buildProductLink(product.id)} label="Copiar link" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-    </DashboardLayout>
+      {/* Modal de Detalhes do Lead */}
+      <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
+    </div>
   );
 }

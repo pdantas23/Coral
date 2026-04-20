@@ -108,3 +108,8 @@ temp/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
+
+# Graphify generated output and cache (rebuild on demand)
+graphify-out/
+client/src/graphify-out/
+client/src/pages/graphify-out/

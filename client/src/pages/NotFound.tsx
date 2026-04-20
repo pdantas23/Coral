@@ -1,71 +1,83 @@
 import { useLocation } from "wouter";
 
-// ─── Paleta Coral ─────────────────────────────────────────────────────────────
-const C = {
-  red1:    "#FD6E5E",
-  red2:    "#CC4834",
-  pink1:   "#FEEDED",
-  noir:    "#333333",
-  bege2:   "#DED6BF",
-  bege3:   "#C8C1AC",
-  owhite:  "#FAF5ED",
-  white:   "#FFFFFF",
-} as const;
+// Forma Eventos Design System — Teal Principal, Purple Secundária
+const COLORS = {
+  TEAL: "#26C2B9",
+  PURPLE: "#6019D2",
+  BG_DARK: "#0B0819",
+  BG_CARD: "#1A1127",
+  TEXT_PRIMARY: "#FFFFFF",
+  TEXT_SECONDARY: "rgba(255, 255, 255, 0.70)",
+  TEXT_MUTED: "rgba(255, 255, 255, 0.40)",
+  BORDER: "rgba(38, 194, 185, 0.25)",
+};
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
 
   return (
     <div
-      className="flex min-h-screen w-full items-center justify-center"
-      style={{ backgroundColor: C.owhite, fontFamily: "'DM Sans', 'Helvetica Neue', Arial, sans-serif" }}
+      className="flex min-h-screen w-full items-center justify-center p-4"
+      style={{ backgroundColor: COLORS.PURPLE }}
     >
       <div
-        className="mx-4 w-full max-w-md flex flex-col items-center text-center p-12 bg-white rounded-2xl"
-        style={{ border: `1px solid ${C.bege2}`, boxShadow: "0 8px 32px rgba(253,110,94,0.08)" }}
+        className="w-full max-w-sm flex flex-col items-center text-center px-8 py-12 rounded-lg border"
+        style={{ backgroundColor: COLORS.TEAL, borderColor: COLORS.TEAL }}
       >
-        {/* Wordmark */}
-        <span
-          className="text-3xl font-black tracking-tight leading-none mb-0.5"
-          style={{
-            color: C.red1,
-            fontFamily: "'Playfair Display', Georgia, serif",
-            letterSpacing: "-0.03em",
-          }}
+        {/* Brand */}
+        <h1
+          className="text-2xl font-bold uppercase tracking-widest mb-1"
+          style={{ fontFamily: "'Poppins', sans-serif", color: COLORS.PURPLE }}
         >
-          CORAL
-        </span>
-        <span className="text-[9px] font-light tracking-[0.5em] uppercase mb-8" style={{ color: C.bege3 }}>
-          Acessórios
-        </span>
-
-        <div className="w-10 h-[2px] rounded-full mb-8" style={{ backgroundColor: C.red1, opacity: 0.35 }} />
+          Forma
+        </h1>
+        <p className="text-xs uppercase tracking-[0.2em] mb-8" style={{ color: "white" }}>
+          Eventos
+        </p>
 
         {/* 404 */}
-        <p
-          className="text-7xl font-black mb-3 leading-none"
-          style={{
-            color: C.pink1,
-            fontFamily: "'Playfair Display', Georgia, serif",
-            letterSpacing: "-0.04em",
-          }}
+        <div className="mb-8">
+          <p
+            className="font-light leading-none mb-4"
+            style={{
+              fontSize: "5rem",
+              color: COLORS.PURPLE,
+              fontFamily: "'Poppins', sans-serif",
+            }}
+          >
+            404
+          </p>
+        </div>
+
+        {/* Message */}
+        <h2
+          className="font-bold mb-3 text-lg"
+          style={{ fontFamily: "'Poppins', sans-serif", color: COLORS.TEXT_PRIMARY }}
         >
-          404
-        </p>
-        <p className="text-sm font-medium mb-2" style={{ color: C.noir }}>Página não encontrada</p>
-        <p className="text-xs font-light leading-relaxed mb-10" style={{ color: C.bege3 }}>
-          A página que você está procurando não existe ou foi removida.
+          Página não encontrada
+        </h2>
+        <p
+          className="font-light mb-8 leading-relaxed text-sm"
+          style={{ color: COLORS.TEXT_SECONDARY }}
+        >
+          A página que você procura não existe ou foi removida. Retorne ao início da plataforma.
         </p>
 
+        {/* Action Button */}
         <button
           onClick={() => setLocation("/")}
-          className="text-[11px] font-medium tracking-[0.3em] uppercase px-8 py-3 transition hover:opacity-85 rounded-full"
+          className="px-8 py-2.5 rounded text-xs font-bold uppercase tracking-wider transition-all duration-200"
           style={{
-            background: `linear-gradient(135deg, ${C.red1} 0%, ${C.red2} 100%)`,
-            color: C.white,
+            backgroundColor: "white",
+            color: COLORS.PURPLE,
             border: "none",
             cursor: "pointer",
-            boxShadow: "0 6px 20px rgba(253,110,94,0.25)",
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.opacity = "0.9";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.opacity = "1";
           }}
         >
           Voltar ao início

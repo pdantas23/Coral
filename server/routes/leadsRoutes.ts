@@ -88,8 +88,8 @@ router.get("/", requireAuth(["comercial", "marketing"]), async (req, res) => {
   return res.json({ leads: data ?? [] });
 });
 
-// ─── PATCH /:id — atualizar estágio do lead (protegido: comercial|marketing) ──
-router.patch("/:id", requireAuth(["comercial", "marketing"]), async (req, res) => {
+// ─── PATCH /:id — atualizar estágio do lead (protegido: comercial APENAS) ──
+router.patch("/:id", requireAuth(["comercial"]), async (req, res) => {
   const { id } = req.params;
   const { estagio } = req.body;
 

@@ -4,9 +4,9 @@ import {
 } from "../lib/supabase";
 
 // ─── Tipos exportados ─────────────────────────────────────────────────────────
-export type AppRole = "comercial";
+export type AppRole = "comercial" | "marketing";
 
-export type UserProfile = {
+type UserProfile = {
   id: string;
   email: string | null;
   role: AppRole | null;
@@ -43,14 +43,14 @@ export async function loginWithEmailAndPassword(
   };
 }
 
-// ─── Perfil — lê de profiles_coral ─────────────────────────────────────────
-export async function getUserProfile(
+// ─── Perfil —─────────────────────────────────────────
+async function getUserProfile(
   userId: string
 ): Promise<UserProfile | null> {
   const supabase = createSupabaseAdminClient();
 
   const { data, error } = await supabase
-    .from("profiles_coral")
+    .from("profiles_forma")
     .select("id, email, role")
     .eq("id", userId)
     .maybeSingle();

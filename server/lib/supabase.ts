@@ -18,18 +18,10 @@ const BASE_AUTH_OPTIONS = {
   },
 } as const;
 
-/**
- * Cliente padrão — usa a anon key.
- * Use para operações que respeitam as Row Level Security policies.
- */
 export function createSupabaseServerClient() {
   return createClient(supabaseUrl, supabaseAnonKey, BASE_AUTH_OPTIONS);
 }
 
-/**
- * Cliente admin — usa a service role key.
- * Ignora RLS. Use apenas em serviços de servidor confiáveis.
- */
 export function createSupabaseAdminClient() {
   return createClient(supabaseUrl, supabaseServiceRoleKey, BASE_AUTH_OPTIONS);
 }

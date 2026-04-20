@@ -1,0 +1,37 @@
+# ─── Controle de versão ────────────────────────────────────────────────────────
+.git
+.gitignore
+
+# ─── Dependências locais (reinstaladas dentro do container via npm ci) ─────────
+node_modules
+**/node_modules
+
+# ─── Variáveis de ambiente sensíveis (injetadas pelo EasyPanel em runtime) ─────
+.env
+.env.*
+*.env
+
+# ─── Build do frontend (não pertence à imagem do servidor API) ─────────────────
+dist/
+build/
+client/
+
+# ─── Arquivos de teste e cobertura ─────────────────────────────────────────────
+coverage/
+*.test.ts
+*.spec.ts
+
+# ─── Documentação e ferramentas de desenvolvimento ────────────────────────────
+*.md
+graphify-out/
+.claude/
+
+# ─── OS e editor ──────────────────────────────────────────────────────────────
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log

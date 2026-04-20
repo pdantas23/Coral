@@ -1,7 +1,42 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(/Users/philip/Library/Python/3.9/bin/graphify install:*)",
+      "Bash(/Users/philip/Library/Python/3.9/bin/pip3 install:*)",
+      "Bash(mkdir -p graphify-out)",
+      "Bash(python3 -c \"import graphify; print\\(''''graphify ok''''\\)\")",
+      "Bash(python3 -m pip install graphifyy -q --break-system-packages)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(pyenv versions:*)",
+      "Bash(/opt/homebrew/bin/python3.14 -c \"import graphify; print\\(''''ok''''\\)\")",
+      "Bash(/opt/homebrew/bin/python3.14 -m pip install graphifyy -q)",
+      "Bash(/opt/homebrew/bin/python3.14 -m pip install graphifyy -q --break-system-packages)",
+      "Bash(curl -fsSL \"https://raw.githubusercontent.com/nextlevelbuilder/ui-ux-pro-max-skill/main/install.sh\")",
+      "Bash(curl:*)",
+      "Bash(npx uipro-cli:*)",
+      "Bash(npm install:*)",
+      "WebFetch(domain:www.reactbits.dev)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api:*)",
+      "Bash(\"/Users/philip/Desktop/RoyalHub/Landing Pages/Forma/esqueleto/graphify-out/.graphify_chunk_01.json\":*)",
+      "Bash(python3 -c \"import sys; open\\(''graphify-out/.graphify_python'', ''w''\\).write\\(sys.executable\\)\")",
+      "WebFetch(domain:21st.dev)",
+      "Bash(ls /usr/local/bin/python* /opt/homebrew/bin/python*)",
+      "Bash(ls /opt/homebrew/bin/python*)",
+      "Read(//Users/philip/.pyenv/**)",
+      "Read(//usr/bin/**)",
+      "Bash(\"/Users/philip/Desktop/RoyalHub/Landing Pages/Forma/forma/graphify-out/.graphify_chunk_01.json\":*)",
+      "Bash(grep -E \"^.*server/index\\\\.ts$\")",
+      "Bash(cat:*)",
+      "Bash(__NEW_LINE_9f14a5534f06c7dd__ ls:*)",
+      "Bash(__NEW_LINE_5df123b2cece89d2__ pwd:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(__NEW_LINE_4e8f27c503c5f4ee__ cat:*)",
+      "Bash(__NEW_LINE_6020aeba37cf78d2__ cd:*)",
+      "Bash(__NEW_LINE_41ab25ce97400308__ git:*)"
     ]
   }
 }

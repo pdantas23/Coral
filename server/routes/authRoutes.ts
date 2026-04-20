@@ -1,9 +1,9 @@
 import { Router } from "express";
+import { AUTH_COOKIE_ACCESS, AUTH_COOKIE_REFRESH } from "../../shared/const";
 import {
   getUserFromAccessToken,
   loginWithEmailAndPassword,
 } from "../services/authService";
-import { AUTH_COOKIE_ACCESS, AUTH_COOKIE_REFRESH } from "../../shared/const";
 
 const router = Router();
 
@@ -12,8 +12,7 @@ const isProduction = process.env.NODE_ENV === "production";
 // ─── Helpers de cookie ────────────────────────────────────────────────────────
 
 function setAuthCookies(res: any, session: any) {
-  // Pega o domínio do .env ou usa o padrão da Coral
-  const domain = process.env.COOKIE_DOMAIN || ".coralacessorios.com.br";
+  const domain = process.env.COOKIE_DOMAIN;
 
   const commonOptions = {
     httpOnly: true,
@@ -35,7 +34,7 @@ function setAuthCookies(res: any, session: any) {
 }
 
 function clearAuthCookies(res: any) {
-  const domain = process.env.COOKIE_DOMAIN || ".coralacessorios.com.br";
+  const domain = process.env.COOKIE_DOMAIN;
   
   const cookieOptions = {
     httpOnly: true,

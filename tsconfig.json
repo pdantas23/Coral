@@ -1,5 +1,5 @@
 {
-  "include": ["client/src/**/*", "server/services/leadService.ts"],
+  "include": ["shared/**/*", "server/**/*", "client/**/*"],
   "exclude": ["node_modules", "build", "dist"],
   "compilerOptions": {
     "target": "ES2020",
@@ -15,9 +15,10 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./client/src/*"]
+      "@/*": ["./client/src/*"],        // <--- Agora @/ aponta para src
+      "@shared/*": ["./shared/*"],      // <--- Use @shared para clareza
+      "@server/*": ["./server/*"]       // <--- Use @server para clareza
     }
   }
 }

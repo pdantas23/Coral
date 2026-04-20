@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
+      '@shared': path.resolve(__dirname, './shared'),
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
@@ -17,15 +18,15 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 3000,
+    port: Number(process.env.CLIENT_PORT ?? 3000),
     host: true,
     proxy: {
       "/api": {
-        target: "http://localhost:3001",
+        target: `http://localhost:${process.env.PORT ?? 3001}`,
         changeOrigin: true,
       },
-      "/auth": {                          // ← adicione isto
-        target: "http://localhost:3001",
+      "/auth": {
+        target: `http://localhost:${process.env.PORT ?? 3001}`,
         changeOrigin: true,
       },
     },

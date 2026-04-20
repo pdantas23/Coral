@@ -1,37 +1,37 @@
+import DropdownCustom from "@/components/ui/DropdownCustom";
+import LeadModal from "@/components/ui/LeadModal";
 import { useAuth } from "@/features/auth/useAuth";
-import { useCallback, useEffect, useState } from "react";
-import type { Lead, TipoEvento, LeadEstagio } from "@shared/const";
+import type { Lead, LeadEstagio, TipoEvento } from "@shared/const";
 import { LEAD_ESTAGIO_LABELS, LEAD_ESTAGIO_VALUES, TIPO_EVENTO_VALUES } from "@shared/const";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Eye, MessageCircle, Search, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
-// ─── Design System Forma Eventos ──────────────────────────────────────────────
+// ─── Design System Forma Eventos — Teal Ação, Purple Identidade ──────────
 const COLORS = {
-  BG_ULTRA_DARK: "#0B0819",
-  BG_DARK: "#1A1127",
-  PURPLE: "#3D2880",
-  TEAL: "#26C2B9",
-  GOLD: "rgb(191, 161, 111)",
-  BORDER: "rgba(61, 40, 128, 0.25)",
-  BORDER_LIGHT: "rgba(38, 194, 185, 0.15)",
-  TEXT_PRIMARY: "#FFFFFF",
-  TEXT_SECONDARY: "rgba(255, 255, 255, 0.65)",
-  TEXT_MUTED: "rgba(255, 255, 255, 0.35)",
+  BG: "#FFFFFF",                    // Fundo branco
+  TEAL: "#26C2B9",                  // Cor de ação/hover/destaque
+  PURPLE: "#3D2880",                // Cor de texto/títulos
+  TEXT_PRIMARY: "#1F2937",          // Cinza escuro para texto
+  TEXT_SECONDARY: "rgba(31, 41, 55, 0.70)",
+  TEXT_MUTED: "rgba(31, 41, 55, 0.50)",
+  BORDER_LIGHT: "#E5E7EB",          // Cinza claro para bordas
+  SHADOW: "0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)",
 };
 
 // ─── Tag colors per tipo_evento ──────────────────────────────────────────────
 const TAG_STYLES: Record<TipoEvento, { bg: string; text: string; label: string }> = {
-  formatura:   { bg: `rgba(61, 40, 128, 0.20)`, text: "#A991F7", label: "Formatura" },
-  corporativo: { bg: `rgba(38, 194, 185, 0.15)`, text: "#26C2B9", label: "Corporativo" },
-  celebracao:  { bg: `rgba(191, 161, 111, 0.15)`, text: "rgb(191,161,111)", label: "Celebração" },
-  outros:      { bg: `rgba(140, 140, 140, 0.12)`, text: "rgba(255,255,255,0.5)", label: "Outros" },
+  formatura:   { bg: `rgba(96, 25, 210, 0.08)`, text: "#6019D2", label: "Formatura" },
+  corporativo: { bg: `rgba(38, 194, 185, 0.08)`, text: "#26C2B9", label: "Corporativo" },
+  celebracao:  { bg: `rgba(217, 119, 6, 0.08)`, text: "#D97706", label: "Celebração" },
+  outros:      { bg: `rgba(107, 114, 128, 0.08)`, text: "#6B7280", label: "Outros" },
 };
 
 const ESTAGIO_COLORS: Record<LeadEstagio, { bg: string; text: string }> = {
-  novo: { bg: `rgba(38, 194, 185, 0.15)`, text: "#26C2B9" },
-  em_contato: { bg: `rgba(169, 145, 247, 0.15)`, text: "#A991F7" },
-  proposta_enviada: { bg: `rgba(191, 161, 111, 0.15)`, text: "rgb(191,161,111)" },
-  fechado: { bg: `rgba(76, 175, 80, 0.15)`, text: "#4CAF50" },
-  perdido: { bg: `rgba(244, 67, 54, 0.15)`, text: "#F44336" },
+  novo: { bg: `rgba(38, 194, 185, 0.08)`, text: "#26C2B9" },
+  em_contato: { bg: `rgba(96, 25, 210, 0.08)`, text: "#6019D2" },
+  proposta_enviada: { bg: `rgba(217, 119, 6, 0.08)`, text: "#D97706" },
+  fechado: { bg: `rgba(34, 197, 94, 0.08)`, text: "#22C55E" },
+  perdido: { bg: `rgba(239, 68, 68, 0.08)`, text: "#EF4444" },
 };
 
 function EventTag({ tipo }: { tipo: TipoEvento }) {
@@ -69,6 +69,12 @@ function fmtTime(iso: string) {
   return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
+// ─── Clean phone number for WhatsApp ─────────────────────────────────────────
+function cleanPhoneForWhatsApp(phone: string): string {
+  const cleaned = phone.replace(/\D/g, "");
+  return cleaned.startsWith("55") ? cleaned : `55${cleaned}`;
+}
+
 // ─── Estado para Editores Inline ──────────────────────────────────────────────
 function EstagioSelect({ 
   value, 
@@ -95,7 +101,7 @@ function EstagioSelect({
       {open && (
         <div
           className="absolute top-full mt-1 w-full rounded-lg shadow-lg z-50 overflow-hidden"
-          style={{ backgroundColor: COLORS.BG_DARK, border: `1px solid ${COLORS.BORDER}` }}
+          style={{ backgroundColor: COLORS.BG, border: `1px solid ${COLORS.BORDER_LIGHT}` }}
         >
           {LEAD_ESTAGIO_VALUES.map(estagio => (
             <button
@@ -108,7 +114,7 @@ function EstagioSelect({
               style={{
                 backgroundColor: value === estagio ? `rgba(38, 194, 185, 0.20)` : "transparent",
                 color: ESTAGIO_COLORS[estagio].text,
-                borderBottom: `1px solid ${COLORS.BORDER}`,
+                borderBottom: `1px solid ${COLORS.PURPLE}`,
               }}
             >
               {LEAD_ESTAGIO_LABELS[estagio]}
@@ -136,6 +142,9 @@ export default function Comercial() {
   // ── Edição Inline ─────────────────────────────────────────────────────────
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingEstagio, setEditingEstagio] = useState<LeadEstagio | null>(null);
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
@@ -170,14 +179,18 @@ export default function Comercial() {
   // ── Stats ─────────────────────────────────────────────────────────────────
   const today = new Date().toISOString().slice(0, 10);
   const leadsToday = filteredLeads.filter(l => l.criado_em.slice(0, 10) === today).length;
+  const leadsNovos = filteredLeads.filter(l => l.estagio === "novo").length;
+  const leadsEmContato = filteredLeads.filter(l => l.estagio === "em_contato").length;
   const leadsFechados = filteredLeads.filter(l => l.estagio === "fechado").length;
   const leadsPerdidos = filteredLeads.filter(l => l.estagio === "perdido").length;
 
   const stats = [
-    { label: "Leads hoje", value: leadsToday.toString() },
-    { label: "Total de leads", value: filteredLeads.length.toString() },
-    { label: "Fechados", value: leadsFechados.toString() },
-    { label: "Perdidos", value: leadsPerdidos.toString() },
+    { label: "Leads Totais", value: filteredLeads.length.toString(), color: COLORS.TEAL },
+    { label: "Leads Hoje", value: leadsToday.toString(), color: COLORS.TEAL },
+    { label: "Novos", value: leadsNovos.toString(), color: "#26C2B9" },
+    { label: "Em Contato", value: leadsEmContato.toString(), color: "#A991F7" },
+    { label: "Fechados", value: leadsFechados.toString(), color: "#4CAF50" },
+    { label: "Perdidos", value: leadsPerdidos.toString(), color: "#F44336" },
   ];
 
   const handleEstagioChange = async (leadId: number, newEstagio: LeadEstagio) => {
@@ -199,28 +212,27 @@ export default function Comercial() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: COLORS.BG_ULTRA_DARK, color: COLORS.TEXT_PRIMARY }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: COLORS.BG, color: COLORS.TEXT_PRIMARY }}>
 
       {/* ── TOPBAR ──────────────────────────────────────────────────────── */}
       <header
-        className="flex items-center justify-between px-6 py-4 backdrop-blur-sm"
-        style={{ backgroundColor: `${COLORS.BG_DARK}dd`, borderBottom: `1px solid ${COLORS.BORDER}` }}
+        className="flex flex-row items-center justify-between px-6 py-4 border-b"
+        style={{ backgroundColor: COLORS.BG, borderColor: COLORS.BORDER_LIGHT }}
       >
         <div>
-          <p className="text-xs font-medium tracking-[0.3em] uppercase" style={{ color: COLORS.TEAL }}>
-            Forma Eventos
-          </p>
-          <h1 className="text-lg font-bold" style={{ fontFamily: "'Poppins', sans-serif", color: COLORS.TEXT_PRIMARY }}>
-            Gestão de Leads
-          </h1>
+        </div>
+
+        <div className="text-center">
+          <img 
+            src="/icon.png" 
+            alt="Logo Forma Eventos" 
+            className="w-40 h-10 object-contain" 
+          />
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-xs font-light" style={{ color: COLORS.TEXT_SECONDARY }}>
-            {profile?.email}
-          </span>
           <button onClick={logout}
-            className="text-xs font-medium px-4 py-2 transition hover:opacity-80 cursor-pointer rounded-full"
-            style={{ backgroundColor: `${COLORS.TEAL}20`, border: `1px solid ${COLORS.BORDER_LIGHT}`, color: COLORS.TEAL }}>
+            className="text-xs font-medium px-4 py-2 transition hover:opacity-80 cursor-pointer rounded"
+            style={{ backgroundColor: COLORS.TEAL, color: "#FFFFFF", border: "none" }}>
             Sair
           </button>
         </div>
@@ -229,32 +241,24 @@ export default function Comercial() {
       {/* ── CONTEÚDO ──────────────────────────────────────────────────────── */}
       <main className="flex-1 p-6 max-w-6xl mx-auto w-full">
 
-        {/* ── STATS CARDS COM GLOW ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {stats.map(({ label, value }) => (
+        {/* ── STATS CARDS (Métricas de Funil) ───────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          {stats.map(({ label, value, color }) => (
             <div
               key={label}
-              className="p-5 flex flex-col gap-1 rounded-lg transition-all hover:shadow-lg cursor-default"
+              className="p-5 flex flex-col gap-2 rounded text-center transition-all cursor-default"
               style={{
-                backgroundColor: `${COLORS.PURPLE}15`,
-                border: `1px solid ${COLORS.BORDER}`,
-                boxShadow: `0 0 20px ${COLORS.TEAL}00`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = `0 0 20px ${COLORS.TEAL}33`;
-                e.currentTarget.style.borderColor = COLORS.BORDER_LIGHT;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = `0 0 20px ${COLORS.TEAL}00`;
-                e.currentTarget.style.borderColor = COLORS.BORDER;
+                backgroundColor: COLORS.BG,
+                border: `1px solid ${COLORS.BORDER_LIGHT}`,
+                boxShadow: COLORS.SHADOW,
               }}
             >
-              <p className="text-xs font-light" style={{ color: COLORS.TEXT_SECONDARY }}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: COLORS.TEXT_MUTED }}>
                 {label}
               </p>
               <p
-                className="text-2xl font-bold"
-                style={{ fontFamily: "'Poppins', sans-serif", color: COLORS.TEAL }}
+                className="text-2xl font-bold leading-none"
+                style={{ fontFamily: "'Poppins', sans-serif", color }}
               >
                 {loading ? "—" : value}
               </p>
@@ -265,15 +269,15 @@ export default function Comercial() {
         {/* ── TABELA DE LEADS ──────────────────────────────────────────────── */}
         <div
           className="p-6 rounded-lg"
-          style={{ backgroundColor: `${COLORS.PURPLE}10`, border: `1px solid ${COLORS.BORDER}` }}
+          style={{ backgroundColor: COLORS.BG, border: `1px solid ${COLORS.BORDER_LIGHT}`, boxShadow: COLORS.SHADOW }}
         >
 
           {/* ── BARRA DE FILTROS AVANÇADOS ───────────────────────────────── */}
           <div className="mb-8">
-            <h3 className="text-sm font-semibold mb-4" style={{ color: COLORS.TEXT_PRIMARY }}>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: COLORS.PURPLE }}>
               Filtros Avançados
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full">
               
               {/* Busca Global */}
               <div className="relative">
@@ -283,106 +287,66 @@ export default function Comercial() {
                   placeholder="Nome ou email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-[12px] rounded-lg outline-none transition-colors"
+                  className="w-full pl-9 pr-3 py-2 text-[12px] rounded outline-none transition-colors"
                   style={{
-                    backgroundColor: `${COLORS.PURPLE}20`,
-                    border: `1px solid ${COLORS.BORDER}`,
+                    backgroundColor: COLORS.BG,
+                    border: `1px solid ${COLORS.BORDER_LIGHT}`,
                     color: COLORS.TEXT_PRIMARY,
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = COLORS.TEAL;
-                    e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.TEAL}33`;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = COLORS.BORDER;
-                    e.currentTarget.style.boxShadow = "none";
+                    e.currentTarget.style.borderColor = COLORS.BORDER_LIGHT;
                   }}
                 />
               </div>
 
               {/* Tipo de Evento */}
-              <div className="relative">
-                <select
-                  value={filterTipo}
-                  onChange={(e) => setFilterTipo(e.target.value as TipoEvento | "todos")}
-                  className="w-full px-3 py-2 text-[12px] rounded-lg outline-none transition-colors appearance-none"
-                  style={{
-                    backgroundColor: `${COLORS.PURPLE}20`,
-                    border: `1px solid ${COLORS.BORDER}`,
-                    color: COLORS.TEXT_PRIMARY,
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='${encodeURIComponent(COLORS.TEXT_MUTED)}' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 8px center",
-                    paddingRight: "28px",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = COLORS.TEAL;
-                    e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.TEAL}33`;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = COLORS.BORDER;
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <option value="todos">Todos os eventos</option>
-                  <option value="formatura">Formatura</option>
-                  <option value="corporativo">Corporativo</option>
-                  <option value="celebracao">Celebração</option>
-                  <option value="outros">Outros</option>
-                </select>
-              </div>
+              <DropdownCustom
+                value={filterTipo}
+                onChange={(v) => setFilterTipo(v as TipoEvento | "todos")}
+                options={[
+                  { value: "todos", label: "Todos" },
+                  ...TIPO_EVENTO_VALUES.map(tipo => ({
+                    value: tipo,
+                    label: tipo.charAt(0).toUpperCase() + tipo.slice(1),
+                  })),
+                ]}
+                placeholder="Tipo de evento"
+              />
 
               {/* Estágio do Lead */}
-              <div className="relative">
-                <select
-                  value={filterEstagio}
-                  onChange={(e) => setFilterEstagio(e.target.value as LeadEstagio | "todos")}
-                  className="w-full px-3 py-2 text-[12px] rounded-lg outline-none transition-colors appearance-none"
-                  style={{
-                    backgroundColor: `${COLORS.PURPLE}20`,
-                    border: `1px solid ${COLORS.BORDER}`,
-                    color: COLORS.TEXT_PRIMARY,
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='${encodeURIComponent(COLORS.TEXT_MUTED)}' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 8px center",
-                    paddingRight: "28px",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = COLORS.TEAL;
-                    e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.TEAL}33`;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = COLORS.BORDER;
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <option value="todos">Todos os estágios</option>
-                  <option value="novo">Novo</option>
-                  <option value="em_contato">Em Contato</option>
-                  <option value="proposta_enviada">Proposta Enviada</option>
-                  <option value="fechado">Fechado</option>
-                  <option value="perdido">Perdido</option>
-                </select>
-              </div>
+              <DropdownCustom
+                value={filterEstagio}
+                onChange={(v) => setFilterEstagio(v as LeadEstagio | "todos")}
+                options={[
+                  { value: "todos", label: "Todos" },
+                  ...LEAD_ESTAGIO_VALUES.map(estagio => ({
+                    value: estagio,
+                    label: LEAD_ESTAGIO_LABELS[estagio],
+                    color: { bg: ESTAGIO_COLORS[estagio].bg, text: ESTAGIO_COLORS[estagio].text },
+                  })),
+                ]}
+                placeholder="Estágio do lead"
+              />
 
               {/* Data Início */}
               <input
                 type="date"
                 value={filterDateStart}
                 onChange={(e) => setFilterDateStart(e.target.value)}
-                className="w-full px-3 py-2 text-[12px] rounded-lg outline-none transition-colors"
+                className="w-full px-3 py-2 text-[12px] rounded outline-none transition-colors"
                 style={{
-                  backgroundColor: `${COLORS.PURPLE}20`,
-                  border: `1px solid ${COLORS.BORDER}`,
+                  backgroundColor: COLORS.BG,
+                  border: `1px solid ${COLORS.BORDER_LIGHT}`,
                   color: COLORS.TEXT_PRIMARY,
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = COLORS.TEAL;
-                  e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.TEAL}33`;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = COLORS.BORDER;
-                  e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.borderColor = COLORS.BORDER_LIGHT;
                 }}
               />
 
@@ -391,19 +355,17 @@ export default function Comercial() {
                 type="date"
                 value={filterDateEnd}
                 onChange={(e) => setFilterDateEnd(e.target.value)}
-                className="w-full px-3 py-2 text-[12px] rounded-lg outline-none transition-colors"
+                className="w-full px-3 py-2 text-[12px] rounded outline-none transition-colors"
                 style={{
-                  backgroundColor: `${COLORS.PURPLE}20`,
-                  border: `1px solid ${COLORS.BORDER}`,
+                  backgroundColor: COLORS.BG,
+                  border: `1px solid ${COLORS.BORDER_LIGHT}`,
                   color: COLORS.TEXT_PRIMARY,
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = COLORS.TEAL;
-                  e.currentTarget.style.boxShadow = `0 0 10px ${COLORS.TEAL}33`;
                 }}
                 onBlur={(e) => {
-                  e.currentTarget.style.borderColor = COLORS.BORDER;
-                  e.currentTarget.style.boxShadow = "none";
+                  e.currentTarget.style.borderColor = COLORS.BORDER_LIGHT;
                 }}
               />
             </div>
@@ -460,12 +422,12 @@ export default function Comercial() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ borderBottom: `1px solid ${COLORS.BORDER}` }}>
+                  <tr style={{ borderBottom: `1px solid ${COLORS.BORDER_LIGHT}` }}>
                     {["Nome", "E-mail", "Telefone", "Tipo", "Estágio", "Data", ""].map(h => (
                       <th
                         key={h}
-                        className="text-left py-3 px-3 text-[10px] font-medium uppercase tracking-wider"
-                        style={{ color: COLORS.TEXT_MUTED }}
+                        className="text-left py-3 px-3 text-[10px] font-semibold uppercase tracking-wider"
+                        style={{ color: COLORS.PURPLE }}
                       >
                         {h}
                       </th>
@@ -478,8 +440,8 @@ export default function Comercial() {
                       key={lead.id}
                       className="group"
                       style={{
-                        borderBottom: `1px solid ${COLORS.BORDER}`,
-                        backgroundColor: editingId === lead.id ? `${COLORS.TEAL}10` : "transparent",
+                        borderBottom: `1px solid ${COLORS.BORDER_LIGHT}`,
+                        backgroundColor: editingId === lead.id ? `rgba(38, 194, 185, 0.05)` : "transparent",
                       }}
                     >
                       <td className="py-3.5 px-3 font-medium text-sm" style={{ color: COLORS.TEXT_PRIMARY }}>
@@ -489,7 +451,19 @@ export default function Comercial() {
                         {lead.email}
                       </td>
                       <td className="py-3.5 px-3 text-xs font-light whitespace-nowrap" style={{ color: COLORS.TEXT_SECONDARY }}>
-                        {lead.telefone}
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`https://wa.me/${cleanPhoneForWhatsApp(lead.telefone)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="transition hover:opacity-70 p-1 rounded"
+                            style={{ color: COLORS.TEAL }}
+                            title="Enviar mensagem via WhatsApp"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </a>
+                          <span>{lead.telefone}</span>
+                        </div>
                       </td>
                       <td className="py-3.5 px-3">
                         <EventTag tipo={lead.tipo_evento} />
@@ -513,10 +487,9 @@ export default function Comercial() {
                         )}
                       </td>
                       <td className="py-3.5 px-3 text-xs font-light whitespace-nowrap" style={{ color: COLORS.TEXT_MUTED }}>
-                        <span>{fmtDate(lead.criado_em)}</span>
-                        <span className="ml-2 opacity-60">{fmtTime(lead.criado_em)}</span>
+                        {fmtDate(lead.criado_em)}
                       </td>
-                      <td className="py-3.5 px-3">
+                      <td className="py-3.5 px-3 flex items-center gap-2">
                         {editingId === lead.id && (
                           <div className="flex gap-2">
                             <button
@@ -541,6 +514,14 @@ export default function Comercial() {
                             </button>
                           </div>
                         )}
+                        <button
+                          onClick={() => setSelectedLead(lead)}
+                          className="p-1.5 rounded transition hover:opacity-70"
+                          style={{ backgroundColor: `${COLORS.TEAL}15`, color: COLORS.TEAL }}
+                          title="Visualizar detalhes do lead"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -550,6 +531,9 @@ export default function Comercial() {
           )}
         </div>
       </main>
+
+      {/* Modal de Detalhes do Lead */}
+      <LeadModal lead={selectedLead} onClose={() => setSelectedLead(null)} />
     </div>
   );
 }

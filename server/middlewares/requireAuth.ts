@@ -25,8 +25,8 @@ declare global {
  *   router.get("/rota", requireAuth(), handler)
  *
  * Uso com controle de roles:
- *   router.get("/admin", requireAuth(["admin"]), handler)
- *   router.get("/team",  requireAuth(["admin", "comercial"]), handler)
+ *   router.get("/dashboard", requireAuth(["comercial"]), handler)
+ *   router.get("/marketing", requireAuth(["marketing"]), handler)
  */
 export function requireAuth(allowedRoles?: AppRole[]) {
   return async (req: Request, res: Response, next: NextFunction) => {
