@@ -1,18 +1,38 @@
-// ─── Autenticação ─────────────────────────────────────────────────────────────
+// ─── Autenticação ────────────────────────────────────────────────────────────
 export const AUTH_COOKIE_ACCESS  = "access_token";
 export const AUTH_COOKIE_REFRESH = "refresh_token";
 
-// ─── Tempo (ms) ───────────────────────────────────────────────────────────────
-export const ONE_HOUR_MS  = 1000 * 60 * 60;
-export const ONE_DAY_MS   = ONE_HOUR_MS * 24;
-export const ONE_WEEK_MS  = ONE_DAY_MS * 7;
-export const ONE_MONTH_MS = ONE_DAY_MS * 30;
-export const ONE_YEAR_MS  = ONE_DAY_MS * 365;
+// ─── Tabelas ─────────────────────────────────────────────────────────────────
+export const DB_TABLES = {
+  PROFILES: "profiles_forma",
+  LEADS:    "leads_forma",
+} as const;
 
-// ─── Paginação padrão ─────────────────────────────────────────────────────────
-export const DEFAULT_PAGE_SIZE = 20;
-export const MAX_PAGE_SIZE     = 100;
+// ─── Tipos de evento (sincronizado com dropdown do formulário + CHECK do banco)
+export const TIPO_EVENTO_VALUES = ["formatura", "corporativo", "celebracao", "outros"] as const;
+export type TipoEvento = (typeof TIPO_EVENTO_VALUES)[number];
 
-// ─── App ──────────────────────────────────────────────────────────────────────
-export const APP_NAME        = "Coral Acessórios";
-export const APP_DESCRIPTION = "Acessórios Femininos Premium";
+// ─── Estágios de lead (sincronizado com ENUM estagio_lead no banco)
+export const LEAD_ESTAGIO_VALUES = ["novo", "em_contato", "proposta_enviada", "fechado", "perdido"] as const;
+export type LeadEstagio = (typeof LEAD_ESTAGIO_VALUES)[number];
+
+export const LEAD_ESTAGIO_LABELS: Record<LeadEstagio, string> = {
+  novo: "Novo",
+  em_contato: "Em Contato",
+  proposta_enviada: "Proposta Enviada",
+  fechado: "Fechado",
+  perdido: "Perdido",
+};
+
+// ─── Lead (shape retornada pelo GET /api/leads) ──────────────────────────────
+export type Lead = {
+  id:          number;
+  nome:        string;
+  email:       string;
+  telefone:    string;
+  tipo_evento: TipoEvento;
+  estagio:     LeadEstagio;
+  mensagem:    string | null;
+  origem:      string | null;
+  criado_em:   string;
+};
