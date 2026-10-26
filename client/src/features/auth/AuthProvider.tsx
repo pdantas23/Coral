@@ -14,17 +14,14 @@ import {
 import type {
   AuthContextType,
   AuthUser,
-  LoginResult,
   UserProfile,
+  LoginResult,
 } from "./authTypes";
 
-// --- Contexto de Autenticação ---
-// Cria o contexto que compartilhará o estado e as funções de autenticação.
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
 );
 
-// --- Tipos ---
 interface Props {
   children: React.ReactNode;
 }
@@ -34,17 +31,12 @@ interface SessionPayload {
   profile: UserProfile | null;
 }
 
-// --- Componente Provedor ---
 export function AuthProvider({ children }: Props) {
-  // --- Estado ---
-  // Gerencia o usuário, perfil, estado de carregamento e erros.
   const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- Funções Auxiliares de Estado ---
-  // Funções para limpar e aplicar o estado da sessão de autenticação.
   const clearAuthState = useCallback(() => {
     setUser(null);
     setProfile(null);
@@ -65,26 +57,25 @@ export function AuthProvider({ children }: Props) {
     [clearAuthState]
   );
 
-  // --- Funções Principais de Autenticação ---
-  // Lógica para carregar sessão, atualizar perfil, login e logout.
   const loadSession = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const { session } = await getCurrentSession();
+      const { session } = await getCurrentSession(); // ← ignora sessionError
       if (!session) {
         clearAuthState();
-        return; 
+        return; // sem setar erro — sessão expirada é fluxo normal
       }
       await applySession(session);
     } catch {
       clearAuthState();
+      // silencioso — não exibe erro de sessão pro usuário
     } finally {
       setLoading(false);
     }
   }, [applySession, clearAuthState]);
 
-  const refreshProfile = useCallback(async () => {
+    const refreshProfile = useCallback(async () => {
       try {
         setError(null);
         const userProfile = await getUserProfile();
@@ -113,6 +104,7 @@ export function AuthProvider({ children }: Props) {
 
         setUser(user);
         setProfile(profile ?? null);
+
         return {
           error: null,
           profile: profile ?? null,
@@ -136,7 +128,7 @@ export function AuthProvider({ children }: Props) {
       setError(null);
       await signOutLocal();
       clearAuthState();
-      window.location.href = "/";
+      window.location.href = "/"; // ← redireciona e limpa o estado por completo
     } catch (err) {
       clearAuthState();
       setError(err instanceof Error ? err.message : "Erro ao sair.");
@@ -146,14 +138,10 @@ export function AuthProvider({ children }: Props) {
     }
   }, [clearAuthState]);
 
-  // --- Efeitos ---
-  // Carrega a sessão do usuário ao montar o componente.
   useEffect(() => {
     void loadSession();
   }, [loadSession]);
 
-  // --- Valor do Contexto ---
-  // Memoriza o objeto de contexto que será fornecido aos componentes filhos.
   const value = useMemo<AuthContextType>(
     () => ({
       user,
@@ -168,7 +156,5 @@ export function AuthProvider({ children }: Props) {
     [user, profile, loading, error, login, logout, refreshProfile]
   );
 
-  // --- Renderização ---
-  // Fornece o contexto de autenticação para a árvore de componentes da aplicação.
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

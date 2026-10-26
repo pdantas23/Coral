@@ -1,5 +1,5 @@
 // ─── Roles ────────────────────────────────────────────────────────────────────
-export type AppRole = "comercial" | "marketing";
+export type AppRole = "admin" | "comercial";
 
 // ─── Usuário autenticado (retorno do Supabase) ────────────────────────────────
 export type AuthUser = {
@@ -7,7 +7,7 @@ export type AuthUser = {
   email: string | null;
 };
 
-// ─── Perfil estendido (tabela profiles_forma no Supabase) ─────────────────────
+// ─── Perfil estendido (tabela profiles_coral no Supabase) ───────────────────
 export type UserProfile = {
   id: string;
   email: string;
