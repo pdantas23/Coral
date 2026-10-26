@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { X, ChevronLeft, ChevronRight, MessageCircle, Minus, Plus, Check, ShoppingBag } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { X, ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product } from "@/features/catalog/catalogTypes";
 import { CATEGORY_LABELS } from "@/features/catalog/catalogTypes";
 import {
@@ -12,7 +13,6 @@ import {
   variacoesVisiveis,
 } from "@/features/catalog/variantUtils";
 import { useCart } from "@/features/cart/CartContext";
-import { linkWhatsApp } from "@/lib/whatsapp";
 import { C, FONT_SERIF } from "@/lib/coralTheme";
 
 type Props = {
@@ -21,13 +21,6 @@ type Props = {
   onClose: () => void;
   onVariationChange?: (variacaoId: string | null) => void;
 };
-
-/** Mensagem do botão de peça única (mesmo padrão de antes, agora com a variação). */
-export function mensagemPecaUnica(nome: string, imageUrl: string | null): string {
-  let message = `Olá! Tenho interesse na peça *${nome}*. Pode me passar mais informações?`;
-  if (imageUrl) message += `\n\n${imageUrl}`;
-  return message;
-}
 
 export default function ProductModal({ product, initialVariationId, onClose, onVariationChange }: Props) {
   const variacoes = useMemo(() => variacoesVisiveis(product), [product]);
@@ -39,8 +32,8 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
   const imagens = useMemo(() => galeria(product, variacao), [product, variacao]);
   const [idx, setIdx] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
-  const [adicionado, setAdicionado] = useState(false);
-  const { adicionar, abrir } = useCart();
+  const reduzir = useReducedMotion();
+  const { adicionar, abrir, aberto: sacolaAberta } = useCart();
 
   const preco = precoEfetivo(product, variacao);
   const codigo = codigoEfetivo(product, variacao);
@@ -48,7 +41,6 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
   const nomeItem = nomeComVariacao(product.nome, variacao?.nome);
 
   useEffect(() => { setIdx(0); }, [variacaoId]);
-  useEffect(() => { setAdicionado(false); }, [variacaoId, quantidade]);
 
   function escolher(id: string) {
     setVariacaoId(id);
@@ -60,6 +52,7 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (sacolaAberta) return; // a sacola por cima trata o próprio Escape
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft" && imagens.length > 1) prev();
       if (e.key === "ArrowRight" && imagens.length > 1) next();
@@ -82,29 +75,42 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
       },
       quantidade
     );
-    setAdicionado(true);
+    // Retorno: abre a sacola por cima do modal, com a peça já somada.
+    abrir();
   }
 
-  const whatsapp = linkWhatsApp(mensagemPecaUnica(nomeItem, imagens[0] ?? null));
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4"
-      style={{ background: "rgba(51,51,51,0.60)", backdropFilter: "blur(6px)" }}
+    // Centralizado em todas as larguras, com margem de 16 px (ou a área
+    // segura do iPhone, se for maior) em volta. Entra com fade e escala leve.
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{
+        background: "rgba(51,51,51,0.60)",
+        backdropFilter: "blur(6px)",
+        paddingTop: "max(16px, env(safe-area-inset-top))",
+        paddingRight: "max(16px, env(safe-area-inset-right))",
+        paddingBottom: "max(16px, env(safe-area-inset-bottom))",
+        paddingLeft: "max(16px, env(safe-area-inset-left))",
+      }}
       onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: reduzir ? 0 : 0.2 }}
     >
-      <div
+      <motion.div
         role="dialog"
         aria-modal="true"
         aria-label={product.nome}
         data-testid="product-modal"
-        className="relative flex w-full flex-col overflow-hidden rounded-t-[28px] bg-white sm:rounded-[28px] md:flex-row"
+        className="relative flex h-full max-h-full w-full flex-col overflow-hidden rounded-[24px] bg-white md:h-[min(100%,640px)] md:flex-row md:rounded-[28px]"
         style={{
-          maxWidth: "min(100vw, 920px)",
-          height: "min(92dvh, 640px)",
+          maxWidth: 920,
           boxShadow: "0 30px 80px rgba(51,51,51,0.25)",
         }}
         onClick={(e) => e.stopPropagation()}
+        initial={reduzir ? false : { opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
       >
         <button
           onClick={onClose}
@@ -261,28 +267,17 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
               <button
                 type="button"
                 data-testid="add-to-cart"
-                onClick={adicionado ? abrir : adicionarNaSacola}
+                onClick={adicionarNaSacola}
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg py-3 text-[10px] font-medium uppercase tracking-[0.2em] transition hover:opacity-90"
                 style={{ background: C.red1, color: C.white, border: "none", cursor: "pointer" }}
               >
-                {adicionado ? <Check className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
-                {adicionado ? "Adicionado. Ver sacola" : "Adicionar à sacola"}
+                <ShoppingBag className="h-3.5 w-3.5" />
+                Adicionar à sacola
               </button>
             </div>
-            <a
-              href={whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="whatsapp-single"
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-[10px] font-medium uppercase tracking-[0.2em] transition hover:opacity-80"
-              style={{ background: C.pink1, color: C.red2, border: `1px solid ${C.pink2}55` }}
-            >
-              <MessageCircle className="h-3.5 w-3.5" />
-              Solicitar só esta peça pelo WhatsApp
-            </a>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
