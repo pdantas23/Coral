@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { carregarCatalogoPublico } from "@/features/catalog/catalogApi";
 import { CATEGORY_LABELS, type Product } from "@/features/catalog/catalogTypes";
 import ProductCard from "@/components/ProductCard";
 import { faixaDePreco } from "@/features/catalog/variantUtils";
+import { selecionarDestaques, selecionarVitrine } from "@/features/catalog/vitrine";
+import { DESTAQUES, ITENS_POR_VITRINE, VITRINES } from "@/config/vitrines";
+import ProductModal from "@/features/catalog/components/ProductModal";
 
 // ─── Brand palette (mirrors Home.tsx) ────────────────────────────────────────
 const C = {
@@ -20,19 +22,35 @@ const C = {
 // ─── BestSellersCarousel ──────────────────────────────────────────────────────
 
 export default function BestSellersCarousel() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [todos, setTodos] = useState<Product[]>([]);
+  const [aberto, setAberto] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [, setLocation] = useLocation();
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     carregarCatalogoPublico()
-      .then((res) => setProducts(res.data))
-      .catch(() => setProducts([]))
+      .then((res) => setTodos(res.data))
+      .catch(() => setTodos([]))
       .finally(() => setLoading(false));
   }, []);
+
+  // Destaques: config/vitrines.ts (DESTAQUES). Sem repetir o que está nos
+  // blocos de Brincos e Anéis logo abaixo.
+  const products = useMemo(() => {
+    const nosBlocos = new Set(
+      VITRINES.flatMap((v) => selecionarVitrine(todos, v.categoria, v.slugs, ITENS_POR_VITRINE)).map((p) => p.id)
+    );
+    return selecionarDestaques(todos, DESTAQUES.slugs, nosBlocos, DESTAQUES.categorias, DESTAQUES.total);
+  }, [todos]);
+
+  useEffect(() => {
+    if (!aberto) return;
+    const anterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = anterior; };
+  }, [aberto]);
 
   const updateScrollState = useCallback(() => {
     const el = trackRef.current;
@@ -138,7 +156,7 @@ export default function BestSellersCarousel() {
                   price={faixa.min}
                   priceFrom={faixa.min !== faixa.max}
                   isFeatured={product.promocao}
-                  onClick={() => setLocation(`/catalogo?produto=${product.slug ?? product.id}`)}
+                  onClick={() => setAberto(product)}
                 />
               </div>
             );
@@ -147,6 +165,8 @@ export default function BestSellersCarousel() {
 
         {seta(1, canScrollRight)}
       </div>
+
+      {aberto && <ProductModal key={aberto.id} product={aberto} onClose={() => setAberto(null)} />}
     </section>
   );
 }

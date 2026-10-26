@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { formatarPreco } from "@/features/catalog/variantUtils";
+import { FOCO_CARD, propsCardClicavel } from "@/lib/cardClicavel";
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 const C = {
@@ -34,9 +35,13 @@ export default function ProductCard({
   isFeatured = false,
   onClick,
 }: ProductCardProps) {
+  // O card inteiro é um botão: clicar em qualquer ponto (ou Enter/Espaço
+  // com o foco nele) abre o produto. O "Ver peça" é só indicação visual.
   return (
     <motion.div
-      className="flex flex-col h-full rounded-[32px] overflow-hidden"
+      {...propsCardClicavel(() => onClick?.(), `Ver ${name}`)}
+      data-testid="highlight-card"
+      className={`group flex w-full flex-col h-full rounded-[32px] overflow-hidden text-left cursor-pointer ${FOCO_CARD}`}
       style={{
         background: "rgba(255, 255, 255, 0.6)",
         backdropFilter: "blur(20px)",
@@ -134,23 +139,12 @@ export default function ProductCard({
         <div className="flex-1" />
 
         {/* CTA Button */}
-        <motion.button
-          className="w-full text-[10px] 2xl:text-[11px] font-medium tracking-[0.28em] uppercase py-3 2xl:py-3.5 rounded-full transition-all duration-300"
-          style={{
-            background: C.red1,
-            color: C.white,
-            border: "none",
-            cursor: "pointer",
-          }}
-          whileHover={{
-            background: C.red2,
-            scale: 1.02,
-          }}
-          whileTap={{ scale: 0.98 }}
-          onClick={onClick}
+        <span
+          aria-hidden="true"
+          className="block w-full text-center text-[10px] 2xl:text-[11px] font-medium tracking-[0.28em] uppercase py-3 2xl:py-3.5 rounded-full bg-[#FD6E5E] text-white transition-all duration-300 group-hover:scale-[1.02] group-hover:bg-[#CC4834] motion-reduce:transition-none"
         >
           Ver Peça
-        </motion.button>
+        </span>
       </div>
     </motion.div>
   );

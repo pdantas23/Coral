@@ -8,6 +8,7 @@ import { X, ChevronLeft, Search, SlidersHorizontal } from "lucide-react";
 import RangeSlider from "@/components/RangeSlider";
 import CategoryDropdown from "@/components/CategoryDropdown";
 import SiteNav from "@/components/SiteNav";
+import { FOCO_CARD, propsCardClicavel } from "@/lib/cardClicavel";
 import { useRegistrarOverlay } from "@/contexts/OverlayContext";
 import ProductModal from "@/features/catalog/components/ProductModal";
 import { faixaDePreco, formatarPreco, variacoesVisiveis } from "@/features/catalog/variantUtils";
@@ -353,8 +354,8 @@ export default function Catalog() {
               <div
                 key={product.id}
                 data-testid="product-card"
-                onClick={() => openModal(product)}
-                className="group relative flex flex-col cursor-pointer rounded-xl overflow-hidden transition hover:shadow-md"
+                {...propsCardClicavel(() => openModal(product), `Ver ${product.nome}`)}
+                className={`group relative flex flex-col cursor-pointer rounded-xl overflow-hidden transition hover:shadow-md ${FOCO_CARD}`}
                 style={{
                   background: C.white,
                   border: `1px solid ${C.bege1}`,

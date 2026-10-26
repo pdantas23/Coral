@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product } from "@/features/catalog/catalogTypes";
@@ -127,7 +128,9 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
   const setaCls = "absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full transition md:flex md:opacity-0 md:group-hover:opacity-100";
   const setaStyle = { background: "rgba(255,255,255,0.92)", color: C.noir, border: "none", cursor: "pointer" } as const;
 
-  return (
+  // Portal no <body>: o modal não depende de quem o abriu (uma seção com
+  // transform, como o carrossel, quebraria o position: fixed).
+  return createPortal(
     // Centralizado em todas as larguras, com margem de 16 px (ou a área
     // segura do iPhone, se for maior) em volta. Entra com fade e escala leve.
     <motion.div
@@ -370,6 +373,7 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
           </div>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }

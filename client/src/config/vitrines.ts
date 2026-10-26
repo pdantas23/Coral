@@ -28,3 +28,17 @@ export const VITRINES: Vitrine[] = [
  * (1 grande + 4), para a página não ficar longa.
  */
 export const ITENS_POR_VITRINE = 7;
+
+/**
+ * Carrossel "Mais Vendidos" (destaques), no topo da página inicial.
+ *
+ * slugs: produtos escolhidos à mão, na ordem. Vazio = automático.
+ * Automático: alterna as categorias abaixo (um de cada por vez), do mais caro
+ * para o mais barato dentro de cada uma, sem repetir o que já aparece nos
+ * blocos de Brincos e Anéis.
+ */
+export const DESTAQUES = {
+  slugs: [] as string[],
+  total: 12,
+  categorias: ["colares", "brincos", "aneis", "pulseiras"] as ProductCategory[],
+};

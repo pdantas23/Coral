@@ -9,6 +9,7 @@ import { ordemNaGrade, selecionarVitrine } from "@/features/catalog/vitrine";
 import ProductModal from "@/features/catalog/components/ProductModal";
 import { ITENS_POR_VITRINE, VITRINES, type Vitrine } from "@/config/vitrines";
 import { C, FONT_SERIF } from "@/lib/coralTheme";
+import { FOCO_CARD } from "@/lib/cardClicavel";
 
 // Fundo neutro dos blocos. As fotos usam mix-blend multiply: o branco das
 // fotos do fornecedor vira este tom, e o bloco não fica com um quadrado branco.
@@ -54,7 +55,7 @@ function Bloco({
       data-testid="bento-item"
       onClick={() => onOpen(product)}
       aria-label={`Ver ${product.nome}`}
-      className={`group relative h-full w-full overflow-hidden rounded-[22px] text-left sm:rounded-[28px] ${POSICAO[indice] ?? ""}`}
+      className={`group relative h-full w-full overflow-hidden rounded-[22px] text-left sm:rounded-[28px] ${FOCO_CARD} ${POSICAO[indice] ?? ""}`}
       style={{
         background: FUNDO_FOTO,
         border: `1px solid ${C.bege1}`,

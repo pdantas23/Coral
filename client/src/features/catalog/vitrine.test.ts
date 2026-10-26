@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Product, ProductVariation } from "./catalogTypes";
-import { maiorPreco, ordemNaGrade, selecionarVitrine, TAMANHO_POR_POSICAO } from "./vitrine";
+import { maiorPreco, ordemNaGrade, selecionarDestaques, selecionarVitrine, TAMANHO_POR_POSICAO } from "./vitrine";
 
 const v = (id: string, preco: number | null = null): ProductVariation =>
   ({ id, produto_id: "x", nome: id, descricao: null, preco, codigo_fornecedor: null, ordem: 0, ativo: true, imagens: [] });
@@ -39,5 +39,22 @@ describe("vitrine em bento", () => {
     expect(grade.map((x, i) => [x, TAMANHO_POR_POSICAO[i]]).filter(([, t]) => t !== "pequeno").map(([x]) => x))
       .toEqual(["p1", "p2", "p3"]);
     expect(ordemNaGrade(["a", "b"])).toEqual(["a", "b"]);
+  });
+});
+
+
+describe("destaques do carrossel", () => {
+  const cat = [
+    p("b1", 900), p("b2", 800), p("b3", 700),
+    p("c1", 500, [], "colares"), p("c2", 400, [], "colares"),
+    p("a1", 600, [], "aneis"),
+    p("u1", 300, [], "pulseiras"),
+  ];
+  it("alterna categorias, mais caro primeiro em cada uma, sem os excluídos", () => {
+    const r = selecionarDestaques(cat, [], new Set(["b1"]), ["colares", "brincos", "aneis", "pulseiras"], 12).map((x) => x.slug);
+    expect(r).toEqual(["c1", "b2", "a1", "u1", "c2", "b3"]);
+  });
+  it("respeita o total e os slugs fixos", () => {
+    expect(selecionarDestaques(cat, ["u1"], new Set(), ["colares", "brincos"], 3).map((x) => x.slug)).toEqual(["u1", "c1", "b1"]);
   });
 });

@@ -51,3 +51,36 @@ export function ordemNaGrade<T>(porTamanho: T[]): T[] {
   const mapa = [0, 1, 3, 4, 2, 5, 6];
   return mapa.map((i) => porTamanho[i]).filter((x): x is T => x !== undefined);
 }
+
+/**
+ * Destaques do carrossel: slugs fixos primeiro; depois alterna as
+ * categorias (um produto de cada por rodada), do mais caro para o mais
+ * barato, sem os ids em `excluir` (os que já estão nos blocos em bento).
+ */
+export function selecionarDestaques(
+  produtos: Product[],
+  slugsFixos: string[],
+  excluir: Set<string>,
+  categorias: ProductCategory[],
+  total: number
+): Product[] {
+  const ativos = produtos.filter((p) => p.ativo !== false);
+  const escolhidos: Product[] = [];
+  for (const slug of slugsFixos) {
+    const p = ativos.find((x) => x.slug === slug || x.id === slug);
+    if (p && !escolhidos.includes(p)) escolhidos.push(p);
+  }
+  const filas = categorias.map((c) =>
+    ativos
+      .filter((p) => p.categoria === c && !excluir.has(p.id) && !escolhidos.includes(p))
+      .sort(comparar)
+  );
+  while (escolhidos.length < total && filas.some((f) => f.length > 0)) {
+    for (const fila of filas) {
+      const p = fila.shift();
+      if (p) escolhidos.push(p);
+      if (escolhidos.length >= total) break;
+    }
+  }
+  return escolhidos.slice(0, total);
+}
