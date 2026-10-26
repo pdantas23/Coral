@@ -1,6 +1,7 @@
 import { createSupabaseAdminClient } from "../../lib/supabase";
 import { slugify } from "../../../shared/slug";
 import { isCatalogMock, mockGetProduct, mockListProducts } from "./catalogMock";
+import { comRetentativa } from "../../lib/retentativa";
 import type {
   Product,
   ProductImage,
@@ -257,7 +258,10 @@ async function slugDisponivel(supabase: Supa, base: string, ignorarId?: string):
 // ─── Listar produtos ──────────────────────────────────────────────────────────
 export async function listProductsService(params: ListProductsParams = {}): Promise<ListProductsResponse> {
   if (isCatalogMock()) return mockListProducts(params);
+  return comRetentativa(() => listarProdutos(params));
+}
 
+async function listarProdutos(params: ListProductsParams): Promise<ListProductsResponse> {
   const supabase = createSupabaseAdminClient();
 
   let query = supabase.from(TABLE).select("*", { count: "exact" }).order("created_at", { ascending: false });
@@ -287,6 +291,10 @@ export async function getProductByIdService(idOrSlug: string): Promise<Product> 
     return p;
   }
 
+  return comRetentativa(() => buscarProduto(idOrSlug));
+}
+
+async function buscarProduto(idOrSlug: string): Promise<Product> {
   const supabase = createSupabaseAdminClient();
   const col = UUID_RE.test(idOrSlug) ? "id" : "slug";
   const { data, error } = await supabase.from(TABLE).select("*").eq(col, idOrSlug).single();

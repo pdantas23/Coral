@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Minus, Plus, Trash2, X, MessageCircle, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, X, ShoppingBag } from "lucide-react";
+import WhatsAppIcon from "@/components/WhatsAppIcon";
 import { useCart } from "./CartContext";
 import { useRegistrarOverlay } from "@/contexts/OverlayContext";
 import { montarMensagemCarrinho } from "./cartUtils";
@@ -146,7 +147,7 @@ export default function CartDrawer() {
               className="flex w-full items-center justify-center gap-2 rounded-lg py-3.5 text-[11px] font-medium uppercase tracking-[0.2em] transition hover:opacity-90"
               style={{ background: C.red1, color: C.white }}
             >
-              <MessageCircle className="h-4 w-4" />
+              <WhatsAppIcon className="h-[18px] w-[18px]" />
               Finalizar pelo WhatsApp
             </a>
             <button
