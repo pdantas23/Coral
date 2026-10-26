@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { listProducts } from "@/features/catalog/catalogApi";
+import { carregarCatalogoPublico } from "@/features/catalog/catalogApi";
 import type { Product } from "@/features/catalog/catalogTypes";
 import ShaderBackground from "@/components/ui/shader-background";
 import BestSellersCarousel from "@/features/catalog/components/BestSellersCarousel";
+import VitrinesBento from "@/features/catalog/components/VitrinesBento";
 import SiteNav, { ALTURA_NAV } from "@/components/SiteNav";
 import {
   ArrowRight,
@@ -61,7 +62,7 @@ export default function Home() {
     let active = true;
     async function loadHome() {
       try {
-        const res = await listProducts({ ativo: true });
+        const res = await carregarCatalogoPublico();
         const all = res.data;
         const nextFeatured = all.slice(0, 4);
         const imgs = nextFeatured.map((p) => p.imagem_url || "").filter(Boolean);
@@ -190,6 +191,9 @@ export default function Home() {
 
           {/* Carrossel */}
           <BestSellersCarousel />
+
+          {/* Seções por tipo, em bento grid (config/vitrines.ts) */}
+          <VitrinesBento />
 
           {/* Divider */}
           <div className="flex items-center gap-6">

@@ -145,3 +145,18 @@ export async function deleteVariation(produtoId: string, variacaoId: string): Pr
   });
   await lerJson(response, "Erro ao excluir variação.");
 }
+
+// ─── Catálogo público compartilhado ─────────────────────────────────────────
+// A Home tem várias seções lendo os mesmos produtos ativos: uma requisição só
+// por carregamento de página. Em erro, a próxima chamada tenta de novo.
+let catalogoPublico: Promise<ListProductsResponse> | null = null;
+
+export function carregarCatalogoPublico(): Promise<ListProductsResponse> {
+  if (!catalogoPublico) {
+    catalogoPublico = listProducts({ ativo: true }).catch((err) => {
+      catalogoPublico = null;
+      throw err;
+    });
+  }
+  return catalogoPublico;
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { listProducts } from "@/features/catalog/catalogApi";
+import { carregarCatalogoPublico } from "@/features/catalog/catalogApi";
 import { CATEGORY_LABELS, type Product } from "@/features/catalog/catalogTypes";
 import ProductCard from "@/components/ProductCard";
 import { faixaDePreco } from "@/features/catalog/variantUtils";
@@ -28,7 +28,7 @@ export default function BestSellersCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    listProducts({ ativo: true })
+    carregarCatalogoPublico()
       .then((res) => setProducts(res.data))
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
