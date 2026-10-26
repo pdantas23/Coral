@@ -118,15 +118,66 @@ export default function ShaderBackground() {
     const uTime = gl.getUniformLocation(program, "u_time");
     const uResolution = gl.getUniformLocation(program, "u_resolution");
 
-    let animationId: number;
-    const startTime = performance.now();
+    // ── Desempenho ──────────────────────────────────────────────────────
+    // Antes: desenhava a cada quadro, em densidade 2x (cerca de 3,9 mi de
+    // pixels a 1440 px), inclusive com o hero fora da tela. A GPU acumulava
+    // fila e, ao voltar ao hero, a página travava segundos esperando
+    // (CommandBufferHelper::Finish no trace). Agora:
+    //   - resolução interna de ESCALA x o tamanho em CSS (o padrão é um
+    //     degradê suave; o navegador amplia sem diferença visível), com teto
+    //     de MAX_PIXELS;
+    //   - só anima com o hero visível (IntersectionObserver) e a aba ativa;
+    //   - no máximo 30 quadros por segundo (o movimento é lento);
+    //   - com prefers-reduced-motion, desenha um quadro só.
+    const ESCALA = 0.5;
+    const MAX_PIXELS = 520_000;
+    const INTERVALO_MS = 1000 / 30;
+    const reduzir = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+
+    let animationId = 0;
+    let visivel = true;
+    let tempo = 0;            // segundos de animação acumulados (não pula ao pausar)
+    let ultimo = 0;
 
     function resize() {
       if (!canvas) return;
-      const dpr = Math.min(window.devicePixelRatio, 2);
-      canvas.width = canvas.clientWidth * dpr;
-      canvas.height = canvas.clientHeight * dpr;
+      let w = canvas.clientWidth * ESCALA;
+      let h = canvas.clientHeight * ESCALA;
+      const px = w * h;
+      if (px > MAX_PIXELS) {
+        const k = Math.sqrt(MAX_PIXELS / px);
+        w *= k;
+        h *= k;
+      }
+      canvas.width = Math.max(1, Math.round(w));
+      canvas.height = Math.max(1, Math.round(h));
       gl!.viewport(0, 0, canvas.width, canvas.height);
+      desenhar();
+    }
+
+    function desenhar() {
+      gl!.uniform1f(uTime, tempo);
+      gl!.uniform2f(uResolution, canvas!.width, canvas!.height);
+      gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
+    }
+
+    function render(agora: number) {
+      animationId = 0;
+      if (!visivel || document.hidden || reduzir) return;
+      if (ultimo === 0) ultimo = agora;
+      const dt = agora - ultimo;
+      if (dt >= INTERVALO_MS) {
+        tempo += Math.min(dt, 100) / 1000;
+        ultimo = agora;
+        desenhar();
+      }
+      animationId = requestAnimationFrame(render);
+    }
+
+    function iniciar() {
+      if (animationId || reduzir || !visivel || document.hidden) return;
+      ultimo = 0;
+      animationId = requestAnimationFrame(render);
     }
 
     resize();
@@ -134,19 +185,22 @@ export default function ShaderBackground() {
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
 
-    function render() {
-      const elapsed = (performance.now() - startTime) / 1000;
-      gl!.uniform1f(uTime, elapsed);
-      gl!.uniform2f(uResolution, canvas!.width, canvas!.height);
-      gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
-      animationId = requestAnimationFrame(render);
-    }
+    const io = new IntersectionObserver(([entrada]) => {
+      visivel = entrada.isIntersecting;
+      if (visivel) iniciar();
+    });
+    io.observe(canvas);
 
-    render();
+    const onVisibilidade = () => { if (!document.hidden) iniciar(); };
+    document.addEventListener("visibilitychange", onVisibilidade);
+
+    iniciar();
 
     return () => {
-      cancelAnimationFrame(animationId);
+      if (animationId) cancelAnimationFrame(animationId);
       observer.disconnect();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilidade);
     };
   }, []);
 
