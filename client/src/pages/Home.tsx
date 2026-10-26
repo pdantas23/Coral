@@ -221,7 +221,7 @@ export default function Home() {
               </h2>
               <p className="text-sm leading-relaxed mb-6 max-w-sm"
                 style={{ color: "rgba(255,255,255,0.80)" }}>
-                Cada peça é cuidadosamente selecionada para contar uma história. Acreditamos que acessórios são mais do que adornos—são extensões da personalidade. Qualidade artesanal com design intemporal.
+                Cada peça é cuidadosamente selecionada para contar uma história. Acreditamos que acessórios são mais do que adornos: são extensões da personalidade. Qualidade artesanal com design intemporal.
               </p>
               <button
                 onClick={() => setLocation("/catalogo")}
