@@ -6,7 +6,7 @@
  *       Simulação (padrão). Não escreve nada. Se houver chaves, só LÊ o banco
  *       para dizer o que já existe.
  *
- *   ... --executar [--log <arquivo>] [--limite N] [--so <slug>,<slug>]
+ *   ... --executar [--log <arquivo>] [--limite N] [--apenas <slug>,<slug>]
  *       Baixa as imagens, converte para WebP (lado maior até 1600 px),
  *       sobe no bucket images-coral (produtos/<timestamp>-<aleatório>.webp)
  *       e grava produto, variações e imagens. Pula o que já existe (slug).
@@ -71,7 +71,7 @@ function lerArgs(argv: string[]): Args {
     else if (k === "--desfazer") a.desfazer = true;
     else if (k === "--log") a.log = prox();
     else if (k === "--limite") a.limite = Number(prox());
-    else if (k === "--so") a.so = prox().split(",").map((s) => s.trim()).filter(Boolean);
+    else if (k === "--so" || k === "--apenas") a.so = prox().split(",").map((s) => s.trim()).filter(Boolean);
     else if (k === "--gerar-mock") a.gerarMock = prox();
     else throw new Error(`Argumento desconhecido: ${k}`);
   }
@@ -97,6 +97,7 @@ type LogProduto = {
   variacao_ids?: string[];
   imagem_ids?: string[];
   storage_paths?: string[];
+  imagens?: { origem: string; path: string; bytes_origem: number; bytes_webp: number }[];
   erro?: string;
 };
 type Log = { iniciado_em: string; json: string; produtos: LogProduto[] };
@@ -147,16 +148,17 @@ async function simular(plano: PlanoProduto[]) {
 }
 
 // ─── Imagem: baixar, converter, subir ────────────────────────────────────────
-async function baixarEConverter(url: string): Promise<Buffer> {
+async function baixarEConverter(url: string): Promise<{ webp: Buffer; bytesOrigem: number }> {
   const sharp = (await import("sharp")).default;
   const resp = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (importacao Coral Acessorios)" } });
   if (!resp.ok) throw new Error(`Download falhou (${resp.status}): ${url}`);
   const buf = Buffer.from(await resp.arrayBuffer());
-  return sharp(buf)
+  const webp = await sharp(buf)
     .rotate()
     .resize({ width: LADO_MAX, height: LADO_MAX, fit: "inside", withoutEnlargement: true })
     .webp({ quality: QUALIDADE })
     .toBuffer();
+  return { webp, bytesOrigem: buf.length };
 }
 
 function novoPath(): string {
@@ -168,16 +170,18 @@ async function importarUm(sb: SupabaseClient, p: PlanoProduto, entrada: LogProdu
   entrada.storage_paths = [];
   entrada.variacao_ids = [];
   entrada.imagem_ids = [];
+  entrada.imagens = [];
 
   // 1. imagens (uma por vez, com pausa)
   const pathPorUrl = new Map<string, string>();
   for (const url of urlsDoProduto(p)) {
-    const webp = await baixarEConverter(url);
+    const { webp, bytesOrigem } = await baixarEConverter(url);
     const destino = novoPath();
     const { error } = await sb.storage.from(BUCKET).upload(destino, webp, { contentType: "image/webp", upsert: false });
     if (error) throw new Error(`Upload falhou (${destino}): ${error.message}`);
     pathPorUrl.set(url, destino);
     entrada.storage_paths.push(destino);
+    entrada.imagens.push({ origem: url, path: destino, bytes_origem: bytesOrigem, bytes_webp: webp.length });
     salvar();
     await dormir(PAUSA_MS);
   }
