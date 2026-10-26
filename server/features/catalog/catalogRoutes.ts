@@ -9,9 +9,52 @@ import {
   uploadProductImageService,
   deleteProductImageService,
   deleteProductService,
+  createVariationService,
+  updateVariationService,
+  deleteVariationService,
+  MockModeError,
 } from "./catalogService";
+import type { VariationPayload } from "./catalogTypes";
 
 const router = Router();
+
+// Escrita no modo mock (CATALOG_MOCK) responde 503; o resto, 500.
+function statusDoErro(error: unknown): number {
+  return error instanceof MockModeError ? 503 : 500;
+}
+
+// Campos opcionais de texto: undefined (não mexe), null ou string.
+function campoTexto(v: unknown): string | null | undefined {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  return typeof v === "string" ? v : String(v);
+}
+
+// Valida o corpo de uma variação. parcial = PATCH.
+function lerVariacao(body: any, parcial: boolean): { erro?: string; payload?: Partial<VariationPayload> } {
+  const { nome, descricao, preco, codigo_fornecedor, ordem, ativo, imagens_paths } = body ?? {};
+  if (!parcial || nome !== undefined) {
+    if (typeof nome !== "string" || !nome.trim()) return { erro: "Nome da variação é obrigatório." };
+  }
+  if (preco !== undefined && preco !== null && (typeof preco !== "number" || preco < 0)) {
+    return { erro: "Preço da variação inválido." };
+  }
+  if (ordem !== undefined && (!Number.isInteger(ordem) || ordem < 0)) {
+    return { erro: "Ordem inválida." };
+  }
+  if (ativo !== undefined && typeof ativo !== "boolean") return { erro: "Ativo inválido." };
+  return {
+    payload: {
+      nome,
+      descricao: campoTexto(descricao),
+      preco: preco === undefined ? undefined : preco,
+      codigo_fornecedor: campoTexto(codigo_fornecedor),
+      ordem,
+      ativo,
+      imagens_paths: Array.isArray(imagens_paths) ? imagens_paths : undefined,
+    },
+  };
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -73,7 +116,7 @@ router.post(
       return res.json({ path });
     } catch (error) {
       console.error("Erro ao fazer upload:", error);
-      return res.status(500).json({ message: error instanceof Error ? error.message : "Erro ao fazer upload." });
+      return res.status(statusDoErro(error)).json({ message: error instanceof Error ? error.message : "Erro ao fazer upload." });
     }
   }
 );
@@ -81,7 +124,8 @@ router.post(
 // ─── POST /api/products ───────────────────────────────────────────────────────
 router.post("/", requireAuth(["comercial"]), async (req, res) => {
   try {
-    const { nome, descricao, preco, imagem_url, imagens_paths, categoria, promocao, ativo } = req.body;
+    const { nome, descricao, preco, imagem_url, imagens_paths, categoria, promocao, ativo,
+            marca, colecao, slug, codigo_fornecedor } = req.body;
 
     if (!nome?.trim())      return res.status(400).json({ message: "Nome é obrigatório." });
     if (!descricao?.trim()) return res.status(400).json({ message: "Descrição é obrigatória." });
@@ -89,19 +133,22 @@ router.post("/", requireAuth(["comercial"]), async (req, res) => {
 
     const product = await createProductService({
       nome, descricao, preco, imagem_url, categoria, promocao, ativo,
+      marca: campoTexto(marca), colecao: campoTexto(colecao),
+      slug: campoTexto(slug), codigo_fornecedor: campoTexto(codigo_fornecedor),
       imagens_paths: Array.isArray(imagens_paths) ? imagens_paths : [],
     });
     res.status(201).json(product);
   } catch (error) {
     console.error("Erro ao criar produto:", error);
-    res.status(500).json({ message: error instanceof Error ? error.message : "Erro ao criar produto." });
+    res.status(statusDoErro(error)).json({ message: error instanceof Error ? error.message : "Erro ao criar produto." });
   }
 });
 
 // ─── PATCH /api/products/:id ──────────────────────────────────────────────────
 router.patch("/:id", requireAuth(["comercial"]), async (req, res) => {
   try {
-    const { nome, descricao, preco, imagem_url, imagens_paths, categoria, promocao, ativo } = req.body;
+    const { nome, descricao, preco, imagem_url, imagens_paths, categoria, promocao, ativo,
+            marca, colecao, slug, codigo_fornecedor } = req.body;
 
     if (nome !== undefined && !nome.trim())           return res.status(400).json({ message: "Nome não pode ser vazio." });
     if (descricao !== undefined && !descricao.trim()) return res.status(400).json({ message: "Descrição não pode ser vazia." });
@@ -109,12 +156,14 @@ router.patch("/:id", requireAuth(["comercial"]), async (req, res) => {
 
     const product = await updateProductService(req.params.id as string, {
       nome, descricao, preco, imagem_url, categoria, promocao, ativo,
+      marca: campoTexto(marca), colecao: campoTexto(colecao),
+      slug: campoTexto(slug), codigo_fornecedor: campoTexto(codigo_fornecedor),
       imagens_paths: Array.isArray(imagens_paths) ? imagens_paths : undefined,
     });
     res.json(product);
   } catch (error) {
     console.error("Erro ao atualizar produto:", error);
-    res.status(500).json({ message: error instanceof Error ? error.message : "Erro ao atualizar produto." });
+    res.status(statusDoErro(error)).json({ message: error instanceof Error ? error.message : "Erro ao atualizar produto." });
   }
 });
 
@@ -131,7 +180,7 @@ router.delete("/delete-image", requireAuth(["comercial"]), async (req, res) => {
     return res.json({ success: true });
   } catch (error) {
     console.error("Erro ao remover imagem:", error);
-    return res.status(500).json({
+    return res.status(statusDoErro(error)).json({
       message: error instanceof Error ? error.message : "Erro ao remover imagem.",
     });
   }
@@ -144,8 +193,57 @@ router.delete("/:id", requireAuth(["comercial"]), async (req, res) => {
     return res.json({ success: true });
   } catch (error) {
     console.error("Erro ao excluir produto:", error);
-    return res.status(500).json({
+    return res.status(statusDoErro(error)).json({
       message: error instanceof Error ? error.message : "Erro ao excluir produto.",
+    });
+  }
+});
+
+// ═══ Variações (painel) ═══════════════════════════════════════════════════════
+
+// ─── POST /api/products/:id/variacoes ────────────────────────────────────────
+router.post("/:id/variacoes", requireAuth(["comercial"]), async (req, res) => {
+  try {
+    const { erro, payload } = lerVariacao(req.body, false);
+    if (erro) return res.status(400).json({ message: erro });
+    const variacao = await createVariationService(req.params.id as string, payload as VariationPayload);
+    return res.status(201).json(variacao);
+  } catch (error) {
+    console.error("Erro ao criar variação:", error);
+    return res.status(statusDoErro(error)).json({
+      message: error instanceof Error ? error.message : "Erro ao criar variação.",
+    });
+  }
+});
+
+// ─── PATCH /api/products/:id/variacoes/:variacaoId ───────────────────────────
+router.patch("/:id/variacoes/:variacaoId", requireAuth(["comercial"]), async (req, res) => {
+  try {
+    const { erro, payload } = lerVariacao(req.body, true);
+    if (erro) return res.status(400).json({ message: erro });
+    const variacao = await updateVariationService(
+      req.params.id as string,
+      req.params.variacaoId as string,
+      payload ?? {}
+    );
+    return res.json(variacao);
+  } catch (error) {
+    console.error("Erro ao atualizar variação:", error);
+    return res.status(statusDoErro(error)).json({
+      message: error instanceof Error ? error.message : "Erro ao atualizar variação.",
+    });
+  }
+});
+
+// ─── DELETE /api/products/:id/variacoes/:variacaoId ──────────────────────────
+router.delete("/:id/variacoes/:variacaoId", requireAuth(["comercial"]), async (req, res) => {
+  try {
+    await deleteVariationService(req.params.id as string, req.params.variacaoId as string);
+    return res.json({ success: true });
+  } catch (error) {
+    console.error("Erro ao excluir variação:", error);
+    return res.status(statusDoErro(error)).json({
+      message: error instanceof Error ? error.message : "Erro ao excluir variação.",
     });
   }
 });

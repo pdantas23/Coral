@@ -6,9 +6,8 @@ function requireEnv(name: string): string {
   return value;
 }
 
-const supabaseUrl            = requireEnv("SUPABASE_URL");
-const supabaseAnonKey        = requireEnv("SUPABASE_ANON_KEY");
-const supabaseServiceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+// Lidas na hora de criar o cliente (e não no import), para o modo mock
+// do catálogo (CATALOG_MOCK) subir a API sem precisar das chaves.
 
 const BASE_AUTH_OPTIONS = {
   auth: {
@@ -23,7 +22,7 @@ const BASE_AUTH_OPTIONS = {
  * Use para operações que respeitam as Row Level Security policies.
  */
 export function createSupabaseServerClient() {
-  return createClient(supabaseUrl, supabaseAnonKey, BASE_AUTH_OPTIONS);
+  return createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_ANON_KEY"), BASE_AUTH_OPTIONS);
 }
 
 /**
@@ -31,5 +30,5 @@ export function createSupabaseServerClient() {
  * Ignora RLS. Use apenas em serviços de servidor confiáveis.
  */
 export function createSupabaseAdminClient() {
-  return createClient(supabaseUrl, supabaseServiceRoleKey, BASE_AUTH_OPTIONS);
+  return createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), BASE_AUTH_OPTIONS);
 }
