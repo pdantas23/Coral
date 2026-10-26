@@ -143,6 +143,7 @@ export default function Catalog() {
 
       {/* ── HEADER ──────────────────────────────────────────────────── */}
       <header
+        data-nav-hero
         className="top-0 z-30"
         style={{
           backgroundColor: "rgba(250,245,237,0.95)",

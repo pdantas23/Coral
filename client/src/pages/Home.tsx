@@ -6,18 +6,19 @@ import ShaderBackground from "@/components/ui/shader-background";
 import BestSellersCarousel from "@/features/catalog/components/BestSellersCarousel";
 import VitrinesBento from "@/features/catalog/components/VitrinesBento";
 import SiteNav, { ALTURA_NAV } from "@/components/SiteNav";
+import WhatsAppIcon, { WHATSAPP_VERDE } from "@/components/WhatsAppIcon";
+import { numeroWhatsApp } from "@/lib/whatsapp";
 import {
   ArrowRight,
   Instagram,
-  Phone,
   MapPin,
-  MessageCircle,
 } from "lucide-react";
 
 // SVG noise pattern (encoded inline)
 const NOISE_PATTERN = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' seed='2' /%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.03' /%3E%3C/svg%3E`;
 
-const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER;
+// Mesmo número de antes (VITE_WHATSAPP_NUMBER), com o valor de reserva do site publicado.
+const WHATSAPP_NUMBER = numeroWhatsApp();
 const MAPS_ADDRESS = encodeURIComponent("Av. Sen. Area Leão, 2185 - São Cristóvão, Teresina - PI, 64049-010");
 
 // ─── Paleta Coral ─────────────────────────────────────────────────────────────
@@ -116,7 +117,7 @@ export default function Home() {
         {/* ── HERO ─────────────────────────────────────────────────────── */}
         {/* O hero sobe por baixo da barra (margem negativa), para a barra
             ficar por cima do fundo do hero, acima da logo. */}
-        <header className="relative overflow-hidden w-full flex flex-col items-center pb-10 sm:pb-14 px-6 pt-[calc(2.5rem+44px)] sm:pt-[calc(3.5rem+44px)]"
+        <header data-nav-hero className="relative overflow-hidden w-full flex flex-col items-center pb-10 sm:pb-14 px-6 pt-[calc(2.5rem+44px)] sm:pt-[calc(3.5rem+44px)]"
           style={{ borderBottom: `1px solid ${C.bege2}`, marginTop: -ALTURA_NAV }}>
 
           <ShaderBackground />
@@ -327,10 +328,10 @@ export default function Home() {
                 href={`https://wa.me/${WHATSAPP_NUMBER}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-[11px] font-light tracking-wider hover:opacity-60 transition"
+                className="flex items-center gap-1.5 text-[11px] font-light tracking-wider hover:opacity-60 transition [&>svg]:text-[#25D366]"
                 style={{ color: C.noir }}
               >
-                <Phone className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" />
                 WhatsApp
               </a>
             </div>
@@ -348,13 +349,13 @@ export default function Home() {
           onClick={goWhatsApp}
           className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center transition hover:scale-105 cursor-pointer"
           style={{
-            backgroundColor: "#25D366",
+            backgroundColor: WHATSAPP_VERDE,
             color: "white",
             boxShadow: `0 12px 32px rgba(37, 211, 102, 0.3), inset 0 0 0 3px ${C.bege1}`
           }}
           aria-label="WhatsApp"
         >
-          <MessageCircle className="w-6 h-6" />
+          <WhatsAppIcon className="w-7 h-7" />
         </button>
       </div>
     </>
