@@ -87,7 +87,8 @@ export type PlanoProduto = {
 export function montarDescricao(item: Pick<ItemLink, "descricao" | "medidas">): string {
   const base = (item.descricao ?? "").trim();
   const medidas = (item.medidas ?? "").trim();
-  if (!medidas) return base;
+  // "MEDIDA" é texto de modelo do fornecedor (Anel Capri): não vira bloco.
+  if (!medidas || /^medidas?\.?$/i.test(medidas)) return base;
   return base ? `${base}\n\nMedidas:\n${medidas}` : `Medidas:\n${medidas}`;
 }
 

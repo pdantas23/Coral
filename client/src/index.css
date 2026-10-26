@@ -25,6 +25,12 @@
     overscroll-behavior-y: none;
   }
 
+  /* Foco visível no padrão da Coral (anel coral), só para teclado. */
+  :focus-visible {
+    outline: 2px solid #FD6E5E;
+    outline-offset: 2px;
+  }
+
   #root {
     display: flex;
     flex-direction: column;

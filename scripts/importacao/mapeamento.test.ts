@@ -105,3 +105,9 @@ describe("mapeamento do import", () => {
     expect(totalLinks).toBe(104);
   });
 });
+
+describe("medidas de modelo", () => {
+  it("'MEDIDA' do fornecedor não vira bloco Medidas", () => {
+    expect(montarDescricao({ descricao: "Texto", medidas: "MEDIDA" })).toBe("Texto");
+  });
+});

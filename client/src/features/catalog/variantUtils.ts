@@ -26,7 +26,38 @@ export function faixaDePreco(product: Product): { min: number; max: number } {
 }
 
 export function descricaoEfetiva(product: Product, variacao?: ProductVariation | null): string {
-  return variacao?.descricao?.trim() ? variacao.descricao : product.descricao;
+  return limparDescricao(variacao?.descricao?.trim() ? variacao.descricao : product.descricao);
+}
+
+const PLACEHOLDER_MEDIDA = /^medidas?\.?$/i;
+
+/**
+ * Limpeza só na exibição (o banco fica como veio do fornecedor):
+ * tira o bloco "Medidas:" quando ele está vazio ou só tem o texto de modelo
+ * "MEDIDA" (caso do Anel Capri), e linhas "MEDIDA" soltas.
+ */
+export function limparDescricao(texto: string | null | undefined): string {
+  if (!texto) return "";
+  const linhas = texto.split("\n");
+  const saida: string[] = [];
+  for (let i = 0; i < linhas.length; i++) {
+    const l = linhas[i].trim();
+    if (/^medidas?:$/i.test(l)) {
+      const resto = linhas.slice(i + 1).map((x) => x.trim()).filter(Boolean);
+      const proximoBloco = resto.findIndex((x) => /:$/.test(x));
+      const doBloco = proximoBloco >= 0 ? resto.slice(0, proximoBloco) : resto;
+      if (doBloco.every((x) => PLACEHOLDER_MEDIDA.test(x))) {
+        // pula o cabeçalho e as linhas de modelo deste bloco
+        let j = i + 1;
+        while (j < linhas.length && (linhas[j].trim() === "" || PLACEHOLDER_MEDIDA.test(linhas[j].trim()))) j++;
+        i = j - 1;
+        continue;
+      }
+    }
+    if (PLACEHOLDER_MEDIDA.test(l)) continue;
+    saida.push(linhas[i]);
+  }
+  return saida.join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 export function codigoEfetivo(product: Product, variacao?: ProductVariation | null): string | null {

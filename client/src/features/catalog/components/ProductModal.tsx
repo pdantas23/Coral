@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Minus, Plus, ShoppingBag } from "lucide-react";
@@ -32,8 +32,8 @@ type Props = {
  * Layout
  *  - Desktop (md+): até 1160 px ou 90vw de largura e até 88vh de altura.
  *    Foto à esquerda; à direita, cabeçalho, opções em grade compacta,
- *    descrição (4 linhas com "Ler mais"; só ela pode rolar) e as ações
- *    sempre visíveis no rodapé.
+ *    descrição ocupando todo o espaço que sobra (inteira se couber; se não,
+ *    só ela rola, com um esmaecido embaixo) e as ações fixas no rodapé.
  *  - Celular: centralizado com margem de 16 px; foto inteira num quadro
  *    1:1 (no máximo 42% da altura), com arrastar e pontos; as informações
  *    rolam e as ações ficam fixas no rodapé do modal.
@@ -48,8 +48,7 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
   const imagens = useMemo(() => galeria(product, variacao), [product, variacao]);
   const [idx, setIdx] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
-  const [lerMais, setLerMais] = useState(false);
-  const [descricaoLonga, setDescricaoLonga] = useState(false);
+  const [temMaisTexto, setTemMaisTexto] = useState(false);
   const trilho = useRef<HTMLDivElement>(null);
   const descRef = useRef<HTMLParagraphElement>(null);
   const reduzir = useReducedMotion();
@@ -61,19 +60,28 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
   const descricao = descricaoEfetiva(product, variacao);
   const nomeItem = nomeComVariacao(product.nome, variacao?.nome);
 
-  // Trocou a variação: volta para a 1ª foto e fecha o "Ler mais".
+  // Trocou a variação: volta para a 1ª foto e para o início do texto.
   useEffect(() => {
     setIdx(0);
-    setLerMais(false);
     if (trilho.current) trilho.current.scrollLeft = 0;
+    if (descRef.current) descRef.current.scrollTop = 0;
   }, [variacaoId]);
 
-  // Só mostra "Ler mais" se o texto passar das 4 linhas.
-  useLayoutEffect(() => {
+  // Esmaecido embaixo da descrição só quando há texto além da área visível
+  // (estouro medido de verdade, e reavaliado quando o modal muda de tamanho).
+  function medirDescricao() {
     const el = descRef.current;
-    if (!el || lerMais) return;
-    setDescricaoLonga(el.scrollHeight > el.clientHeight + 2);
-  }, [descricao, lerMais]);
+    if (!el) return;
+    setTemMaisTexto(el.scrollHeight - el.scrollTop - el.clientHeight > 2);
+  }
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    medirDescricao();
+    const ro = new ResizeObserver(medirDescricao);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [descricao]);
 
   function escolher(id: string) {
     setVariacaoId(id);
@@ -279,7 +287,11 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
                 <p className="mb-2 text-[9px] font-light uppercase tracking-[0.3em]" style={{ color: C.muted }}>
                   Opções <span style={{ color: C.noir }}>({variacoes.length})</span>
                 </p>
-                <div className="grid grid-cols-2 gap-1.5 xl:grid-cols-3" role="radiogroup" aria-label="Escolha a opção">
+                <div
+                  className={`grid gap-1.5 ${variacoes.length <= 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 xl:grid-cols-3"}`}
+                  role="radiogroup"
+                  aria-label="Escolha a opção"
+                >
                   {variacoes.map((v) => {
                     const sel = v.id === variacaoId;
                     const precoV = precoEfetivo(product, v);
@@ -292,7 +304,7 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
                         title={v.nome}
                         data-testid="variation-option"
                         onClick={() => escolher(v.id)}
-                        className="flex min-w-0 items-center gap-2 rounded-xl p-1 pr-2 text-left text-[10.5px] leading-tight transition"
+                        className="flex h-full min-w-0 items-center gap-2 rounded-xl p-1 pr-2 text-left text-[10.5px] leading-tight transition outline-none focus-visible:ring-2 focus-visible:ring-[#FD6E5E]"
                         style={{
                           border: `1px solid ${sel ? C.red1 : C.bege2}`,
                           background: sel ? C.pink1 : C.white,
@@ -306,7 +318,7 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
                           )}
                         </span>
                         <span className="min-w-0">
-                          <span className="line-clamp-2">{v.nome}</span>
+                          <span className="line-clamp-3">{v.nome}</span>
                           {precoV !== preco && (
                             <span className="block tabular-nums" style={{ color: C.muted }}>{formatarPreco(precoV)}</span>
                           )}
@@ -319,26 +331,24 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
             )}
 
             {descricao && (
-              <div className={`mt-4 flex min-h-0 flex-col ${lerMais ? "md:flex-1" : ""}`}>
+              <div className="relative mt-4 md:min-h-0 md:flex-1">
                 <p
                   ref={descRef}
+                  onScroll={medirDescricao}
                   data-testid="product-description"
-                  className={`whitespace-pre-line text-xs font-light leading-relaxed ${lerMais ? "md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-2" : "line-clamp-4"}`}
+                  tabIndex={temMaisTexto ? 0 : undefined}
+                  className="whitespace-pre-line text-xs font-light leading-relaxed md:h-full md:overflow-y-auto md:pr-2 md:[scrollbar-width:thin] rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#FD6E5E]"
                   style={{ color: "#5B564C" }}
                 >
                   {descricao}
                 </p>
-                {(descricaoLonga || lerMais) && (
-                  <button
-                    type="button"
-                    data-testid="read-more"
-                    onClick={() => setLerMais((x) => !x)}
-                    className="mt-1 self-start text-[10px] font-medium uppercase tracking-[0.2em] transition hover:opacity-70"
-                    style={{ color: C.red2, background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                  >
-                    {lerMais ? "Ler menos" : "Ler mais"}
-                  </button>
-                )}
+                {/* indica que há mais texto para rolar (só no desktop, onde só a descrição rola) */}
+                <div
+                  aria-hidden="true"
+                  data-testid="desc-fade"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-10 transition-opacity duration-200 md:block"
+                  style={{ opacity: temMaisTexto ? 1 : 0, background: "linear-gradient(to bottom, rgba(255,255,255,0), #fff)" }}
+                />
               </div>
             )}
           </div>

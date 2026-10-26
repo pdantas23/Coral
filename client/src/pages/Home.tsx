@@ -7,11 +7,11 @@ import BestSellersCarousel from "@/features/catalog/components/BestSellersCarous
 import VitrinesBento from "@/features/catalog/components/VitrinesBento";
 import SiteNav, { ALTURA_NAV } from "@/components/SiteNav";
 import WhatsAppIcon, { WHATSAPP_VERDE } from "@/components/WhatsAppIcon";
+import InstagramIcon from "@/components/InstagramIcon";
 import { numeroWhatsApp } from "@/lib/whatsapp";
 import { useAlgumOverlayAberto } from "@/contexts/OverlayContext";
 import {
   ArrowRight,
-  Instagram,
   MapPin,
 } from "lucide-react";
 
@@ -324,7 +324,7 @@ export default function Home() {
                 className="flex items-center gap-1.5 text-[11px] font-light tracking-wider hover:opacity-60 transition"
                 style={{ color: C.noir }}
               >
-                <Instagram className="w-4 h-4" />
+                <InstagramIcon className="w-4 h-4" />
                 @coralacessoriospi
               </a>
               <a

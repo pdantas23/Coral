@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Product, ProductVariation } from "./catalogTypes";
-import { faixaDePreco, galeria, nomeComVariacao, precoEfetivo, variacoesVisiveis, codigoEfetivo, descricaoEfetiva } from "./variantUtils";
+import { faixaDePreco, galeria, nomeComVariacao, precoEfetivo, variacoesVisiveis, codigoEfetivo, descricaoEfetiva, limparDescricao } from "./variantUtils";
 
 function variacao(p: Partial<ProductVariation>): ProductVariation {
   return { id: "v", produto_id: "p", nome: "V", descricao: null, preco: null, codigo_fornecedor: null, ordem: 0, ativo: true, imagens: [], ...p };
@@ -44,5 +44,17 @@ describe("regra de preço da variação", () => {
     expect(galeria(base, v)).toEqual(["var.webp", "geral.webp"]);
     expect(galeria(base, variacao({}))).toEqual(["capa.webp", "geral.webp"]);
     expect(galeria(base, null)).toEqual(["capa.webp", "geral.webp"]);
+  });
+});
+
+
+describe("limpeza da descrição na exibição", () => {
+  it("tira o bloco Medidas com só MEDIDA (Anel Capri) ou vazio", () => {
+    expect(limparDescricao("Texto da peça.\n\nMedidas:\nMEDIDA")).toBe("Texto da peça.");
+    expect(limparDescricao("Texto.\n\nMedidas:\n")).toBe("Texto.");
+  });
+  it("mantém o bloco Medidas com medidas de verdade", () => {
+    const t = "Texto.\n\nMedidas:\nBanho: Ouro\nPeso: 3g";
+    expect(limparDescricao(t)).toBe(t);
   });
 });
