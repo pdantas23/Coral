@@ -13,6 +13,7 @@ import {
   variacoesVisiveis,
 } from "@/features/catalog/variantUtils";
 import { useCart } from "@/features/cart/CartContext";
+import { useRegistrarOverlay } from "@/contexts/OverlayContext";
 import { C, FONT_SERIF } from "@/lib/coralTheme";
 
 type Props = {
@@ -33,6 +34,7 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
   const [idx, setIdx] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
   const reduzir = useReducedMotion();
+  useRegistrarOverlay(true); // montado = aberto
   const { adicionar, abrir, aberto: sacolaAberta } = useCart();
 
   const preco = precoEfetivo(product, variacao);

@@ -8,6 +8,7 @@ import { X, ChevronLeft, Search, SlidersHorizontal } from "lucide-react";
 import RangeSlider from "@/components/RangeSlider";
 import CategoryDropdown from "@/components/CategoryDropdown";
 import SiteNav from "@/components/SiteNav";
+import { useRegistrarOverlay } from "@/contexts/OverlayContext";
 import ProductModal from "@/features/catalog/components/ProductModal";
 import { faixaDePreco, formatarPreco, variacoesVisiveis } from "@/features/catalog/variantUtils";
 
@@ -46,6 +47,7 @@ export default function Catalog() {
   const [filterPrecoMax, setFilterPrecoMax] = useState("");
 
   const [selected, setSelected] = useState<Product | null>(null);
+  useRegistrarOverlay(showFilters); // o modal de filtros cobre a tela
 
   // A barra do topo leva a /catalogo?categoria=...; o filtro acompanha a URL.
   useEffect(() => {

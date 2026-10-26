@@ -10,6 +10,7 @@ import {
 } from "@/features/catalog/catalogApi";
 import { Plus, Pencil, Trash2, X, ImagePlus, Loader2, Layers } from "lucide-react";
 import VariationsManager from "@/features/comercial/components/VariationsManager";
+import { useRegistrarOverlay } from "@/contexts/OverlayContext";
 import type { Product, CreateProductPayload } from "@/features/catalog/catalogTypes";
 import { PRODUCT_CATEGORIES, CATEGORY_LABELS } from "@/features/catalog/catalogTypes";
 import CategoryDropdown from "@/components/CategoryDropdown";
@@ -97,6 +98,7 @@ export default function Comercial() {
   const [removingImageId, setRemovingImageId] = useState<string | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [variacoesDe, setVariacoesDe] = useState<Product | null>(null);
+  useRegistrarOverlay(modalOpen || !!variacoesDe);
 
   const [form, setForm]     = useState<FormState>(EMPTY_FORM);
   const [images, setImages] = useState<UploadedImage[]>([]);

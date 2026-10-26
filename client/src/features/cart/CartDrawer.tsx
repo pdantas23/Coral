@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Minus, Plus, Trash2, X, MessageCircle, ShoppingBag } from "lucide-react";
 import { useCart } from "./CartContext";
+import { useRegistrarOverlay } from "@/contexts/OverlayContext";
 import { montarMensagemCarrinho } from "./cartUtils";
 import { formatarPreco } from "@/features/catalog/variantUtils";
 import { linkWhatsApp } from "@/lib/whatsapp";
@@ -8,6 +9,7 @@ import { C, FONT_SANS, FONT_SERIF } from "@/lib/coralTheme";
 
 export default function CartDrawer() {
   const { itens, aberto, fechar, alterar, remover, limpar, subtotal, quantidadeTotal } = useCart();
+  useRegistrarOverlay(aberto);
 
   useEffect(() => {
     if (!aberto) return;

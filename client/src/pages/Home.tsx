@@ -8,6 +8,7 @@ import VitrinesBento from "@/features/catalog/components/VitrinesBento";
 import SiteNav, { ALTURA_NAV } from "@/components/SiteNav";
 import WhatsAppIcon, { WHATSAPP_VERDE } from "@/components/WhatsAppIcon";
 import { numeroWhatsApp } from "@/lib/whatsapp";
+import { useAlgumOverlayAberto } from "@/contexts/OverlayContext";
 import {
   ArrowRight,
   Instagram,
@@ -87,6 +88,8 @@ export default function Home() {
   }
 
   const showLoadingOverlay = !homeReady;
+  // Some quando o modal do produto, a sacola ou outro diálogo está aberto.
+  const esconderWhatsApp = useAlgumOverlayAberto();
 
   return (
     <>
@@ -347,8 +350,13 @@ export default function Home() {
         {/* WhatsApp flutuante */}
         <button
           onClick={goWhatsApp}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center transition hover:scale-105 cursor-pointer"
+          data-testid="whatsapp-fab"
+          aria-hidden={esconderWhatsApp || undefined}
+          tabIndex={esconderWhatsApp ? -1 : undefined}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center transition-[opacity,transform] duration-200 hover:scale-105 cursor-pointer motion-reduce:transition-none"
           style={{
+            opacity: esconderWhatsApp ? 0 : 1,
+            pointerEvents: esconderWhatsApp ? "none" : "auto",
             backgroundColor: WHATSAPP_VERDE,
             color: "white",
             boxShadow: `0 12px 32px rgba(37, 211, 102, 0.3), inset 0 0 0 3px ${C.bege1}`
