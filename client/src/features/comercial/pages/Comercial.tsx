@@ -8,7 +8,8 @@ import {
   deleteProductImage,
   deleteProduct,
 } from "@/features/catalog/catalogApi";
-import { Plus, Pencil, Trash2, X, ImagePlus, Loader2, Star, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, ImagePlus, Loader2, Layers } from "lucide-react";
+import VariationsManager from "@/features/comercial/components/VariationsManager";
 import type { Product, CreateProductPayload } from "@/features/catalog/catalogTypes";
 import { PRODUCT_CATEGORIES, CATEGORY_LABELS } from "@/features/catalog/catalogTypes";
 import CategoryDropdown from "@/components/CategoryDropdown";
@@ -46,10 +47,14 @@ type FormState = {
   categoria: (typeof PRODUCT_CATEGORIES)[number] | null;
   promocao: boolean;
   ativo: boolean;
+  marca: string;
+  colecao: string;
+  codigo_fornecedor: string;
 };
 
 const EMPTY_FORM: FormState = {
   nome: "", descricao: "", preco: "", categoria: null, promocao: false, ativo: true,
+  marca: "", colecao: "", codigo_fornecedor: "",
 };
 
 function makeId() { return Math.random().toString(36).slice(2); }
@@ -90,6 +95,7 @@ export default function Comercial() {
   const [formError, setFormError]             = useState("");
   const [removingImageId, setRemovingImageId] = useState<string | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [variacoesDe, setVariacoesDe] = useState<Product | null>(null);
 
   const [form, setForm]     = useState<FormState>(EMPTY_FORM);
   const [images, setImages] = useState<UploadedImage[]>([]);
@@ -126,7 +132,9 @@ export default function Comercial() {
   function openEdit(product: Product) {
     setEditingProduct(product); setFormError(""); setImageErrors(new Set());  // ✅ Limpar erros ao abrir
     setForm({ nome: product.nome, descricao: product.descricao, preco: String(product.preco),
-               categoria: product.categoria ?? null, promocao: product.promocao, ativo: product.ativo });
+               categoria: product.categoria ?? null, promocao: product.promocao, ativo: product.ativo,
+               marca: product.marca ?? "", colecao: product.colecao ?? "",
+               codigo_fornecedor: product.codigo_fornecedor ?? "" });
     const list: UploadedImage[] = [];
     if (product.imagem_url)
       list.push({ id: makeId(), path: extractPath(product.imagem_url), previewUrl: product.imagem_url, uploading: false, error: "" });
@@ -246,6 +254,9 @@ export default function Comercial() {
       categoria: form.categoria,
       promocao: form.promocao,
       ativo: form.ativo,
+      marca: form.marca.trim() || null,
+      colecao: form.colecao.trim() || null,
+      codigo_fornecedor: form.codigo_fornecedor.trim() || null,
     };
 
     try {
@@ -445,6 +456,11 @@ export default function Comercial() {
                       )}
                     </div>
 
+                    {product.marca && (
+                      <p className="text-[9px] tracking-[0.25em] uppercase font-light" style={{ color: C.bege3 }}>
+                        {product.marca}{product.colecao ? `  ·  Coleção ${product.colecao}` : ""}
+                      </p>
+                    )}
                     {/* O título fica logo abaixo */}
                     <p 
                       className="text-sm md:text-base font-medium truncate" 
@@ -464,6 +480,11 @@ export default function Comercial() {
                     <span className="text-sm md:text-base font-medium" style={{ color: C.red1 }}>
                       R$ {product.preco.toFixed(2).replace(".", ",")}
                     </span>
+                    {(product.variacoes?.length ?? 0) > 0 && (
+                      <span className="text-[10px] font-light" style={{ color: C.bege3 }}>
+                        {product.variacoes!.length} variaç{product.variacoes!.length === 1 ? "ão" : "ões"}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -484,6 +505,23 @@ export default function Comercial() {
                   >
                     <Pencil className="h-3 w-3" />
                     <span>Editar</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setVariacoesDe(product)}
+                    disabled={deletingProductId === product.id}
+                    className="flex items-center justify-center gap-1.5 px-4 py-2 text-[10px] font-light tracking-[0.2em] uppercase transition hover:opacity-60 rounded-sm disabled:opacity-40"
+                    style={{
+                      color: C.noir,
+                      border: `1px solid ${C.bege2}`,
+                      background: "none",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <Layers className="h-3 w-3" />
+                    <span>Variações</span>
                   </button>
 
                   <button
@@ -516,6 +554,16 @@ export default function Comercial() {
           {filtered.length} produto{filtered.length !== 1 ? "s" : ""}
         </p>
       </div>
+
+      {variacoesDe && (
+        <VariationsManager
+          product={variacoesDe}
+          onClose={() => setVariacoesDe(null)}
+          onChange={(variacoes) => {
+            setProducts((prev) => prev.map((p) => (p.id === variacoesDe.id ? { ...p, variacoes } : p)));
+          }}
+        />
+      )}
 
       {/* ── MODAL ───────────────────────────────────────────────────────────── */}
       {modalOpen && (
@@ -565,7 +613,7 @@ export default function Comercial() {
               <section className="shrink-0">
                 <div className="mb-[0.8vh] flex items-center justify-between">
                   <p className="text-[1.5vh] font-light tracking-[0.35em] uppercase" style={{ color: C.bege3 }}>
-                    Imagens — máx. 5 MB
+                    Imagens (máx. 5 MB)
                   </p>
                   <span className="text-[1vh] font-light" style={{ color: C.bege3 }}>
                     {images.filter(i => i.path && !i.error).length} foto(s)
@@ -634,6 +682,23 @@ export default function Comercial() {
                     className="w-full h-[5vh] px-[1.2vh] text-[1.3vh] font-light outline-none rounded-sm transition"
                     style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.owhite, color: C.noir }}
                   />
+                </div>
+
+                {/* Marca, coleção e código */}
+                <div className="grid grid-cols-3 gap-[1vh]">
+                  {([
+                    ["marca", "Marca"],
+                    ["colecao", "Coleção"],
+                    ["codigo_fornecedor", "Código"],
+                  ] as const).map(([key, label]) => (
+                    <div key={key}>
+                      <label className="block text-[1.5vh] tracking-[0.3em] uppercase font-light mb-[0.4vh]" style={{ color: C.bege3 }}>{label}</label>
+                      <input type="text" value={form[key]} onChange={(e) => setField(key, e.target.value)}
+                        className="w-full h-[5vh] px-[1.2vh] text-[1.3vh] font-light outline-none rounded-sm"
+                        style={{ border: `1px solid ${C.bege2}`, backgroundColor: C.owhite, color: C.noir }}
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Descrição */}

@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import { AuthProvider }  from "@/features/auth/AuthProvider";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { CartProvider }  from "@/features/cart/CartContext";
+import CartDrawer        from "@/features/cart/CartDrawer";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
@@ -14,7 +16,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     */}
     <ThemeProvider defaultTheme="light" switchable={false}>
       <AuthProvider>
-        <App />
+        <CartProvider>
+          <App />
+          <CartDrawer />
+        </CartProvider>
       </AuthProvider>
     </ThemeProvider>
   </React.StrictMode>

@@ -5,6 +5,8 @@ import type {
   UpdateProductPayload,
   ListProductsParams,
   ListProductsResponse,
+  ProductVariation,
+  VariationPayload,
 } from "./catalogTypes";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -102,4 +104,44 @@ export async function deleteProduct(id: string): Promise<void> {
 
     throw new Error(message);
   }
+}
+
+// ─── Variações (painel) ─────────────────────────────────────────────────────
+async function lerJson(response: Response, padrao: string) {
+  let data: any = null;
+  try { data = await response.json(); } catch { /* sem corpo */ }
+  if (!response.ok) throw new Error(data?.message || padrao);
+  return data;
+}
+
+export async function createVariation(produtoId: string, payload: VariationPayload): Promise<ProductVariation> {
+  const response = await fetch(`${API_URL}/api/products/${produtoId}/variacoes`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return lerJson(response, "Erro ao criar variação.");
+}
+
+export async function updateVariation(
+  produtoId: string,
+  variacaoId: string,
+  payload: Partial<VariationPayload>
+): Promise<ProductVariation> {
+  const response = await fetch(`${API_URL}/api/products/${produtoId}/variacoes/${variacaoId}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return lerJson(response, "Erro ao atualizar variação.");
+}
+
+export async function deleteVariation(produtoId: string, variacaoId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/products/${produtoId}/variacoes/${variacaoId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  await lerJson(response, "Erro ao excluir variação.");
 }
