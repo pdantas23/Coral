@@ -4,7 +4,7 @@ import { listProducts } from "@/features/catalog/catalogApi";
 import type { Product } from "@/features/catalog/catalogTypes";
 import ShaderBackground from "@/components/ui/shader-background";
 import BestSellersCarousel from "@/features/catalog/components/BestSellersCarousel";
-import SiteNav from "@/components/SiteNav";
+import SiteNav, { ALTURA_NAV } from "@/components/SiteNav";
 import {
   ArrowRight,
   Instagram,
@@ -110,11 +110,13 @@ export default function Home() {
           backgroundImage: `url("${NOISE_PATTERN}"), linear-gradient(135deg, ${C.owhite} 0%, ${C.bege1} 30%, ${C.pink1} 60%, ${C.pink2} 85%, ${C.owhite} 100%)`
         }}>
 
-        <SiteNav />
+        <SiteNav sobreHero />
 
         {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <header className="relative overflow-hidden w-full flex flex-col items-center py-10 sm:py-14 px-6"
-          style={{ borderBottom: `1px solid ${C.bege2}` }}>
+        {/* O hero sobe por baixo da barra (margem negativa), para a barra
+            ficar por cima do fundo do hero, acima da logo. */}
+        <header className="relative overflow-hidden w-full flex flex-col items-center pb-10 sm:pb-14 px-6 pt-[calc(2.5rem+44px)] sm:pt-[calc(3.5rem+44px)]"
+          style={{ borderBottom: `1px solid ${C.bege2}`, marginTop: -ALTURA_NAV }}>
 
           <ShaderBackground />
 

@@ -13,6 +13,7 @@ import VariationsManager from "@/features/comercial/components/VariationsManager
 import type { Product, CreateProductPayload } from "@/features/catalog/catalogTypes";
 import { PRODUCT_CATEGORIES, CATEGORY_LABELS } from "@/features/catalog/catalogTypes";
 import CategoryDropdown from "@/components/CategoryDropdown";
+import { formatarPreco } from "@/features/catalog/variantUtils";
 
 // ─── Paleta Coral ─────────────────────────────────────────────────────────────
 const C = {
@@ -478,7 +479,7 @@ export default function Comercial() {
                   {/* Price + Category */}
                   <div className="flex items-center gap-3">
                     <span className="text-sm md:text-base font-medium" style={{ color: C.red1 }}>
-                      R$ {product.preco.toFixed(2).replace(".", ",")}
+                      {formatarPreco(product.preco)}
                     </span>
                     {(product.variacoes?.length ?? 0) > 0 && (
                       <span className="text-[10px] font-light" style={{ color: C.bege3 }}>

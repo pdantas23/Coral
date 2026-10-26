@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatarPreco } from "@/features/catalog/variantUtils";
 import DashboardLayout from "@/components/DashboardLayout";
 import { listProducts } from "@/features/catalog/catalogApi";
 import type { Product } from "@/features/catalog/catalogTypes";
@@ -34,7 +35,7 @@ function buildWhatsAppBlast(products: Product[]): string {
   if (destaques.length > 0) {
     text += "🌸 *Produtos em destaque:*\n";
     for (const p of destaques.slice(0, 5)) {
-      text += `• ${p.nome}: R$ ${p.preco.toFixed(2).replace(".", ",")}\n`;
+      text += `• ${p.nome}: ${formatarPreco(p.preco)}\n`;
     }
     text += "\n";
   }
@@ -262,7 +263,7 @@ export default function Marketing() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate" style={{ color: C.noir }}>{product.nome}</p>
                     <p className="text-xs font-light" style={{ color: C.red1 }}>
-                      R$ {product.preco.toFixed(2).replace(".", ",")}
+                      {formatarPreco(product.preco)}
                     </p>
                   </div>
 
@@ -320,7 +321,7 @@ export default function Marketing() {
                   <div className="p-3 flex flex-col gap-1.5">
                     <p className="text-xs font-medium line-clamp-2 leading-snug" style={{ color: C.noir }}>{product.nome}</p>
                     <p className="text-xs font-light" style={{ color: product.promocao ? C.red1 : C.bege3 }}>
-                      R$ {product.preco.toFixed(2).replace(".", ",")}
+                      {formatarPreco(product.preco)}
                     </p>
                     <div className="pt-1">
                       <CopyButton text={buildProductLink(product.id)} label="Copiar link" />

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { formatarPreco } from "@/features/catalog/variantUtils";
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 const C = {
@@ -16,6 +17,9 @@ interface ProductCardProps {
   name: string;
   category: string;
   price: number;
+  /** true quando as variações têm preços diferentes: mostra "a partir de" */
+  priceFrom?: boolean;
+  brand?: string | null;
   isFeatured?: boolean;
   onClick?: () => void;
 }
@@ -25,6 +29,8 @@ export default function ProductCard({
   name,
   category,
   price,
+  priceFrom = false,
+  brand,
   isFeatured = false,
   onClick,
 }: ProductCardProps) {
@@ -36,7 +42,6 @@ export default function ProductCard({
         backdropFilter: "blur(20px)",
         border: `1px solid ${C.bege1}`,
         boxShadow: `0 4px 16px rgba(253, 110, 94, 0.08)`,
-        minHeight: "480px",
       }}
       whileHover={{
         y: -10,
@@ -95,20 +100,20 @@ export default function ProductCard({
       </motion.div>
 
       {/* Content Area */}
-      <div className="flex flex-col gap-3 p-6 flex-1">
-        {/* Category */}
-        {category && (
+      <div className="flex flex-col gap-2.5 p-5 xl:p-6 2xl:gap-3 2xl:p-7 flex-1">
+        {/* Marca e categoria */}
+        {(brand || category) && (
           <p
-            className="text-[9px] tracking-[0.1em] uppercase font-light"
-            style={{ color: C.bege3 }}
+            className="text-[9px] 2xl:text-[10px] tracking-[0.12em] uppercase font-light truncate"
+            style={{ color: "#8A8270" }}
           >
-            {category}
+            {[brand, category].filter(Boolean).join("  ·  ")}
           </p>
         )}
 
         {/* Product Name */}
         <p
-          className="text-lg font-bold leading-snug line-clamp-2"
+          className="text-base xl:text-lg 2xl:text-xl font-bold leading-snug line-clamp-2"
           style={{ color: C.noir }}
         >
           {name}
@@ -116,10 +121,13 @@ export default function ProductCard({
 
         {/* Price */}
         <p
-          className="text-base font-semibold"
+          className="text-sm xl:text-base 2xl:text-lg font-semibold"
           style={{ color: C.red1 }}
         >
-          R$ {price.toFixed(2).replace(".", ",")}
+          {priceFrom && (
+            <span className="mr-1 text-[10px] 2xl:text-xs font-light" style={{ color: "#8A8270" }}>a partir de</span>
+          )}
+          {formatarPreco(price)}
         </p>
 
         {/* Spacer to push button to bottom */}
@@ -127,7 +135,7 @@ export default function ProductCard({
 
         {/* CTA Button */}
         <motion.button
-          className="w-full text-[10px] font-medium tracking-[0.28em] uppercase py-3 rounded-full transition-all duration-300"
+          className="w-full text-[10px] 2xl:text-[11px] font-medium tracking-[0.28em] uppercase py-3 2xl:py-3.5 rounded-full transition-all duration-300"
           style={{
             background: C.red1,
             color: C.white,

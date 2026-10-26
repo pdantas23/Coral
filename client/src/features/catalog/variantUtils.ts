@@ -51,6 +51,9 @@ export function galeria(product: Product, variacao?: ProductVariation | null): s
   return [...new Set(lista.filter(Boolean))];
 }
 
+const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+/** "R$ 1.600,00". Troca o espaço não separável do Intl por espaço comum (WhatsApp e testes). */
 export function formatarPreco(valor: number): string {
-  return `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return BRL.format(Number(valor)).replace(/\u00a0/g, " ");
 }
