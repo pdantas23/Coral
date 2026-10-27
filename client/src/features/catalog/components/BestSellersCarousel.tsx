@@ -30,10 +30,11 @@ export default function BestSellersCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let ativo = true;
     carregarCatalogoPublico()
-      .then((res) => setTodos(res.data))
-      .catch(() => setTodos([]))
-      .finally(() => setLoading(false));
+      .then((res) => { if (ativo) { setTodos(res.data); setLoading(false); } })
+      .catch(() => { if (ativo) { setTodos([]); setLoading(false); } });
+    return () => { ativo = false; };
   }, []);
 
   // Destaques: config/vitrines.ts (DESTAQUES). Sem repetir o que está nos
@@ -59,15 +60,25 @@ export default function BestSellersCarousel() {
     setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
   }, []);
 
-  // Reset scroll and refresh arrow states whenever products list changes
+  // Mede as setas quando o trilho aparece e sempre que a largura dele ou do
+  // conteúdo muda. Antes a medida dependia só de products.length: ao voltar
+  // para a Home, o catálogo já vem do cache, a lista chega num render em que
+  // `loading` ainda é true (o trilho não existe) e o efeito não rodava de novo
+  // quando o trilho aparecia. A seta "Próximo" ficava desabilitada para sempre.
+  const mostrar = !loading && products.length > 0;
   useEffect(() => {
     const el = trackRef.current;
-    if (!el) return;
+    if (!mostrar || !el) return;
     el.scrollLeft = 0;
     setCanScrollLeft(false);
-    const t = setTimeout(updateScrollState, 60);
-    return () => clearTimeout(t);
-  }, [products.length, updateScrollState]);
+    updateScrollState();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateScrollState) : null;
+    ro?.observe(el);
+    if (el.firstElementChild) ro?.observe(el.firstElementChild);
+    // As fotos chegam depois e podem mudar a largura dos cards.
+    const t = setTimeout(updateScrollState, 300);
+    return () => { ro?.disconnect(); clearTimeout(t); };
+  }, [mostrar, products.length, updateScrollState]);
 
   function scrollByCards(direction: 1 | -1) {
     const el = trackRef.current;
@@ -77,7 +88,7 @@ export default function BestSellersCarousel() {
     el.scrollBy({ left: card.offsetWidth * direction, behavior: "smooth" });
   }
 
-  if (loading || products.length === 0) return null;
+  if (!mostrar) return null;
 
   const seta = (dir: 1 | -1, ativo: boolean) => (
     <button
