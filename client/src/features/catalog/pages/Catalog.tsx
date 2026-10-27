@@ -8,7 +8,8 @@ import { X, ChevronLeft, Search, SlidersHorizontal } from "lucide-react";
 import RangeSlider from "@/components/RangeSlider";
 import CategoryDropdown from "@/components/CategoryDropdown";
 import SiteNav from "@/components/SiteNav";
-import { FOCO_CARD, propsCardClicavel } from "@/lib/cardClicavel";
+import { FOCO_CARD, propsCardClicavel, recorte } from "@/lib/cardClicavel";
+import { propsFoto } from "@/lib/imagem";
 import { useRegistrarOverlay } from "@/contexts/OverlayContext";
 import ProductModal from "@/features/catalog/components/ProductModal";
 import { faixaDePreco, formatarPreco, variacoesVisiveis } from "@/features/catalog/variantUtils";
@@ -360,8 +361,12 @@ export default function Catalog() {
                   background: C.white,
                   border: `1px solid ${C.bege1}`,
                   boxShadow: "0 2px 8px rgba(51,51,51,0.04)",
+                  isolation: "isolate",
                 }}
               >
+                {/* Foto com recorte próprio nos cantos de cima (ver recorte()):
+                    no Safari, a foto em escala vazava o canto reto. A sombra
+                    do hover fica no card, fora do recorte. */}
                 {product.promocao && (
                   <div className="absolute top-2.5 left-2.5 z-10 text-[9px] font-medium tracking-wider uppercase rounded-full px-2 py-0.5"
                     style={{ color: C.white, background: C.red1 }}>
@@ -369,10 +374,11 @@ export default function Catalog() {
                   </div>
                 )}
 
-                <div className="overflow-hidden" style={{ aspectRatio: "3/4", backgroundColor: C.bege1 }}>
+                <div className="overflow-hidden" style={{ ...recorte("11px 11px 0 0"), aspectRatio: "3/4", backgroundColor: C.bege1 }}>
                   {product.imagem_url ? (
                     <img
-                      src={product.imagem_url} alt={product.nome} loading="lazy"
+                      {...propsFoto(product.imagem_url, "(min-width: 1024px) 260px, (min-width: 640px) 33vw, 50vw")}
+                      alt={product.nome} loading="lazy" decoding="async"
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   ) : (

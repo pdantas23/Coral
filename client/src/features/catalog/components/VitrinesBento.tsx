@@ -9,11 +9,14 @@ import { ordemNaGrade, selecionarVitrine } from "@/features/catalog/vitrine";
 import ProductModal from "@/features/catalog/components/ProductModal";
 import { ITENS_POR_VITRINE, VITRINES, type Vitrine } from "@/config/vitrines";
 import { C, FONT_SERIF } from "@/lib/coralTheme";
-import { FOCO_CARD } from "@/lib/cardClicavel";
+import { FOCO_CARD, SOMBRA_HOVER } from "@/lib/cardClicavel";
+import { propsFoto } from "@/lib/imagem";
 
 // Fundo neutro dos blocos. As fotos usam mix-blend multiply: o branco das
 // fotos do fornecedor vira este tom, e o bloco não fica com um quadrado branco.
 const FUNDO_FOTO = "#F3EEE7";
+const SOMBRA_BASE = "0 4px 16px rgba(253, 110, 94, 0.08)";
+const SOMBRA_ALTA = "0 20px 40px rgba(253, 110, 94, 0.15)";
 
 /*
  * Composição do bento (7 produtos):
@@ -55,25 +58,34 @@ function Bloco({
       data-testid="bento-item"
       onClick={() => onOpen(product)}
       aria-label={`Ver ${product.nome}`}
-      className={`group relative h-full w-full overflow-hidden rounded-[22px] text-left sm:rounded-[28px] ${FOCO_CARD} ${POSICAO[indice] ?? ""}`}
-      style={{
-        background: FUNDO_FOTO,
-        border: `1px solid ${C.bege1}`,
-        boxShadow: "0 4px 16px rgba(253, 110, 94, 0.08)",
-        cursor: "pointer",
-      }}
+      className={`group relative h-full w-full rounded-[22px] text-left sm:rounded-[28px] ${FOCO_CARD} ${POSICAO[indice] ?? ""}`}
+      style={{ boxShadow: SOMBRA_BASE, cursor: "pointer" }}
       initial={reduzir ? false : { opacity: 0, y: 24 }}
       whileInView={reduzir ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.55, delay: reduzir ? 0 : indice * 0.06, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={reduzir ? undefined : { y: -6, boxShadow: "0 20px 40px rgba(253, 110, 94, 0.15)" }}
+      whileHover={reduzir ? undefined : { y: -6 }}
     >
+      {/* Sombra do hover numa camada própria: só a opacidade anima (barato),
+          em vez de redesenhar o box-shadow a cada quadro. Fica fora do
+          recorte abaixo, então continua aparecendo. */}
+      <span aria-hidden="true" className={SOMBRA_HOVER} style={{ boxShadow: SOMBRA_ALTA }} />
+
+      {/* Recorte arredondado. O clip-path e o isolation fazem o Safari
+          recortar também a foto em escala (camada própria durante o hover) e
+          manter o multiply dentro do card; sem isso, o canto reto e branco da
+          foto vazava por trás do arredondamento. Raio igual ao do botão. */}
+      <span
+        className="absolute inset-0 block overflow-hidden rounded-[inherit] [clip-path:inset(0_round_22px)] sm:[clip-path:inset(0_round_28px)]"
+        style={{ isolation: "isolate", background: FUNDO_FOTO, border: `1px solid ${C.bege1}` }}
+      >
       {product.imagem_url ? (
         <img
-          src={product.imagem_url}
+          {...propsFoto(product.imagem_url, grande || indice === 4 ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 1024px) 25vw, 50vw")}
           alt={product.nome}
           loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-105"
+          decoding="async"
+          className="absolute inset-0 h-full w-full rounded-[inherit] object-cover transition-transform duration-700 ease-out motion-safe:group-hover:scale-105"
           style={{ mixBlendMode: "multiply" }}
         />
       ) : (
@@ -92,7 +104,9 @@ function Bloco({
       {/* etiqueta com as informações */}
       <span
         className={`absolute bottom-2.5 left-2.5 right-2.5 block rounded-2xl sm:bottom-3 sm:left-3 sm:right-3 ${grande ? "px-4 py-3 sm:px-5 sm:py-4" : "px-3 py-2"}`}
-        style={{ background: "rgba(255,255,255,0.86)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" }}
+        // Sem backdrop-filter: com 14 etiquetas na página, o desfoque pesava na
+        // rolagem do Safari. Branco um pouco mais opaco no lugar.
+        style={{ background: "rgba(255,255,255,0.9)" }}
       >
         {product.marca && (
           <span className="block truncate text-[8.5px] font-light uppercase tracking-[0.22em] sm:text-[9px]" style={{ color: C.muted }}>
@@ -118,6 +132,7 @@ function Bloco({
             </span>
           )}
         </span>
+      </span>
       </span>
     </motion.button>
   );

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { formatarPreco } from "@/features/catalog/variantUtils";
-import { FOCO_CARD, propsCardClicavel } from "@/lib/cardClicavel";
+import { FOCO_CARD, SOMBRA_HOVER, propsCardClicavel, recorte } from "@/lib/cardClicavel";
+import { propsFoto } from "@/lib/imagem";
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 const C = {
@@ -41,36 +42,35 @@ export default function ProductCard({
     <motion.div
       {...propsCardClicavel(() => onClick?.(), `Ver ${name}`)}
       data-testid="highlight-card"
-      className={`group flex w-full flex-col h-full rounded-[32px] overflow-hidden text-left cursor-pointer ${FOCO_CARD}`}
-      style={{
-        background: "rgba(255, 255, 255, 0.6)",
-        backdropFilter: "blur(20px)",
-        border: `1px solid ${C.bege1}`,
-        boxShadow: `0 4px 16px rgba(253, 110, 94, 0.08)`,
-      }}
-      whileHover={{
-        y: -10,
-        boxShadow: `0 20px 40px rgba(253, 110, 94, 0.15)`,
-      }}
+      className={`group relative h-full w-full rounded-[32px] text-left cursor-pointer ${FOCO_CARD}`}
+      style={{ boxShadow: `0 4px 16px rgba(253, 110, 94, 0.08)` }}
+      whileHover={{ y: -10 }}
       transition={{ duration: 0.4, ease: [0.175, 0.885, 0.32, 1.275] }}
     >
+      {/* Sombra do hover: camada própria, só a opacidade anima. Fica fora do
+          recorte (a máscara do recorte cortaria a sombra). */}
+      <span aria-hidden="true" className={SOMBRA_HOVER} style={{ boxShadow: `0 20px 40px rgba(253, 110, 94, 0.15)` }} />
+
+      {/* Recorte arredondado (ver recorte()): sem ele, no Safari, a foto em
+          escala deixava o canto reto aparecer. Sem backdrop-filter: o fundo
+          atrás do card é um degradê liso, e o desfoque de 20 px em cada card
+          do carrossel pesava na rolagem. */}
+      <div
+        className="relative flex h-full w-full flex-col overflow-hidden rounded-[inherit]"
+        style={{ ...recorte("32px"), background: "rgba(255, 255, 255, 0.6)", border: `1px solid ${C.bege1}` }}
+      >
       {/* Image Container */}
-      <motion.div
+      <div
         className="relative w-full overflow-hidden"
         style={{ aspectRatio: "3/4" }}
-        whileHover="hover"
-        initial="normal"
       >
         {image ? (
-          <motion.img
-            src={image}
+          <img
+            {...propsFoto(image, "(min-width: 1536px) 340px, (min-width: 1024px) 25vw, (min-width: 640px) 33vw, 80vw")}
             alt={name}
-            className="w-full h-full object-cover"
-            variants={{
-              normal: { scale: 1 },
-              hover: { scale: 1.05 },
-            }}
-            transition={{ duration: 0.6, ease: [0.175, 0.885, 0.32, 1.275] }}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.175,0.885,0.32,1.275)] motion-safe:group-hover:scale-105"
           />
         ) : (
           <div
@@ -102,7 +102,7 @@ export default function ProductCard({
             Destaque
           </motion.div>
         )}
-      </motion.div>
+      </div>
 
       {/* Content Area */}
       <div className="flex flex-col gap-2.5 p-5 xl:p-6 2xl:gap-3 2xl:p-7 flex-1">
@@ -145,6 +145,7 @@ export default function ProductCard({
         >
           Ver Peça
         </span>
+      </div>
       </div>
     </motion.div>
   );

@@ -16,6 +16,7 @@ import {
 import { useCart } from "@/features/cart/CartContext";
 import { useRegistrarOverlay } from "@/contexts/OverlayContext";
 import { C, FONT_SERIF } from "@/lib/coralTheme";
+import { propsFoto } from "@/lib/imagem";
 
 // Fundo das fotos (o mesmo do bento). Com mix-blend multiply, o branco das
 // fotos do fornecedor vira este tom e a foto inteira aparece (object-contain).
@@ -314,7 +315,7 @@ export default function ProductModal({ product, initialVariationId, onClose, onV
                       >
                         <span className="h-8 w-8 shrink-0 overflow-hidden rounded-lg" style={{ background: FUNDO_FOTO }}>
                           {v.imagens[0] && (
-                            <img src={v.imagens[0].url} alt="" className="h-full w-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                            <img {...propsFoto(v.imagens[0].url, "32px", [96])} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" style={{ mixBlendMode: "multiply" }} />
                           )}
                         </span>
                         <span className="min-w-0">
