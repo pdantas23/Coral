@@ -151,8 +151,8 @@ export default function Home() {
                 maxWidth: "640px",
               }}
             >
-              O detalhe que{" "}
-              <span style={{ fontStyle: "italic", color: C.red1 }}>faz a diferença.</span>
+              Beleza é viver de{" "}
+              <span style={{ fontStyle: "italic", color: C.red1 }}>coração aberto</span>
             </h1>
 
             <p className="text-sm font-light text-center leading-relaxed mb-10 max-w-md"
@@ -251,9 +251,13 @@ export default function Home() {
                 boxShadow: `0 12px 32px rgba(0, 0, 0, 0.15)`
               }}>
               <img
-                src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&h=700&fit=crop"
-                alt="Detalhe de acessórios Coral"
-                className="w-full h-full object-cover"
+                src="/curadoria.webp"
+                alt="Mulher sorrindo usando brincos e anéis com pedras coloridas"
+                width={852}
+                height={1280}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover object-[50%_40%]"
               />
             </div>
           </section>
